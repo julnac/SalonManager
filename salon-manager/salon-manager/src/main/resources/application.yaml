@@ -1,0 +1,48 @@
+spring:
+    application:
+        name: SalonManagerApplication
+    datasource:
+        url: jdbc:postgresql://localhost:5432/salon_db
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                format_sql: true
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+        defer-datasource-initialization: true
+    sql:
+        init:
+            mode: always
+    data:
+        web:
+            pageable:
+                default-page-size: 20
+                max-page-size: 100
+                one-indexed-parameters: false
+server:
+    port: 8080
+
+salon:
+    name: Salon U Kasi
+    address: ul. Kwiatowa 12, Warszawa
+    phone: "+48 123 456 789"
+    email: kontakt@salon.pl
+
+logging:
+    level:
+        org.hibernate.SQL: DEBUG
+        org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+springdoc:
+    api-docs:
+        path: /api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        enabled: true
