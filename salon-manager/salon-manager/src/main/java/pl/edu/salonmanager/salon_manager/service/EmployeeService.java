@@ -34,20 +34,17 @@ public class EmployeeService {
     public EmployeeDto getEmployeeById(Long id) {
         log.debug("Fetching employee with id: {}", id);
         Employee employee = employeeRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("Employee not found with id: {}", id);
-                return new ResourceNotFoundException("Employee not found with id: " + id);
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
         return mapToDto(employee);
     }
 
     @Transactional
     public EmployeeDto createEmployee(CreateEmployeeRequest request) {
-        log.info("Creating new employee: {} {}", request.getFirstName(), request.getLastName());
+        log.debug("Creating new employee: {} {}", request.getFirstName(), request.getLastName());
 
         // Check if email already exists
         if (employeeRepository.existsByEmail(request.getEmail())) {
-            log.error("Employee with email {} already exists", request.getEmail());
+            log.warn("Attempt to create employee with duplicate email: {}", request.getEmail());
             throw new BadRequestException("Employee with email " + request.getEmail() + " already exists");
         }
 
@@ -57,24 +54,21 @@ public class EmployeeService {
         employee.setEmail(request.getEmail());
 
         Employee saved = employeeRepository.save(employee);
-        log.info("Employee created with id: {}", saved.getId());
+        log.info("Employee created successfully with id: {}", saved.getId());
         return mapToDto(saved);
     }
 
     @Transactional
     public EmployeeDto updateEmployee(Long id, UpdateEmployeeRequest request) {
-        log.info("Updating employee with id: {}", id);
+        log.debug("Updating employee with id: {}", id);
 
         Employee existing = employeeRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("Employee not found with id: {}", id);
-                return new ResourceNotFoundException("Employee not found with id: " + id);
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
 
         // Check if email is being changed and if new email already exists
         if (!existing.getEmail().equals(request.getEmail()) &&
             employeeRepository.existsByEmail(request.getEmail())) {
-            log.error("Employee with email {} already exists", request.getEmail());
+            log.warn("Attempt to update employee {} with duplicate email: {}", id, request.getEmail());
             throw new BadRequestException("Employee with email " + request.getEmail() + " already exists");
         }
 
@@ -83,21 +77,20 @@ public class EmployeeService {
         existing.setEmail(request.getEmail());
 
         Employee updated = employeeRepository.save(existing);
-        log.info("Employee updated with id: {}", updated.getId());
+        log.info("Employee updated successfully with id: {}", updated.getId());
         return mapToDto(updated);
     }
 
     @Transactional
     public void deleteEmployee(Long id) {
-        log.info("Deleting employee with id: {}", id);
+        log.debug("Deleting employee with id: {}", id);
 
         if (!employeeRepository.existsById(id)) {
-            log.error("Employee not found with id: {}", id);
             throw new ResourceNotFoundException("Employee not found with id: " + id);
         }
 
         employeeRepository.deleteById(id);
-        log.info("Employee deleted with id: {}", id);
+        log.info("Employee deleted successfully with id: {}", id);
     }
 
     // Mapper: Entity → DTO

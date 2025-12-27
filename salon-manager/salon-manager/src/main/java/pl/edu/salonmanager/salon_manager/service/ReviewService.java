@@ -26,7 +26,7 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public List<ReviewDto> getAllReviews() {
         log.debug("Fetching all reviews");
-        return reviewRepository.findAll().stream()
+        return reviewRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -35,43 +35,36 @@ public class ReviewService {
     public ReviewDto getReviewById(Long id) {
         log.debug("Fetching review with id: {}", id);
         Review review = reviewRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("Review not found with id: {}", id);
-                return new ResourceNotFoundException("Review not found with id: " + id);
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
         return mapToDto(review);
     }
 
     @Transactional
     public ReviewDto createReview(CreateReviewRequest request) {
-        log.info("Creating new review for user id: {}", request.getUserId());
+        log.debug("Creating new review for user id: {}", request.getUserId());
 
         User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> {
-                log.error("User not found with id: {}", request.getUserId());
-                return new ResourceNotFoundException("User not found with id: " + request.getUserId());
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
         Review review = new Review();
         review.setContent(request.getContent());
         review.setUser(user);
 
         Review saved = reviewRepository.save(review);
-        log.info("Review created with id: {}", saved.getId());
+        log.info("Review created successfully with id: {}", saved.getId());
         return mapToDto(saved);
     }
 
     @Transactional
     public void deleteReview(Long id) {
-        log.info("Deleting review with id: {}", id);
+        log.debug("Deleting review with id: {}", id);
 
         if (!reviewRepository.existsById(id)) {
-            log.error("Review not found with id: {}", id);
             throw new ResourceNotFoundException("Review not found with id: " + id);
         }
 
         reviewRepository.deleteById(id);
-        log.info("Review deleted with id: {}", id);
+        log.info("Review deleted successfully with id: {}", id);
     }
 
     // Mapper: Entity → DTO
