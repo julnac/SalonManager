@@ -34,6 +34,9 @@ salon:
     address: ul. Kwiatowa 12, Warszawa
     phone: "+48 123 456 789"
     email: kontakt@salon.pl
+    opening-time: "09:00"
+    closing-time: "17:00"
+    slot-duration-minutes: 15
 
 logging:
     level:
