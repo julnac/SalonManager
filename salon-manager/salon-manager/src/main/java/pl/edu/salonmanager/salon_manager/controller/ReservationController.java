@@ -8,11 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.edu.salonmanager.salon_manager.model.dto.response.AvailabilityResponseDto;
 import pl.edu.salonmanager.salon_manager.model.dto.response.ReservationDetailDto;
 import pl.edu.salonmanager.salon_manager.model.dto.request.CreateReservationRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.Reservation;
+import pl.edu.salonmanager.salon_manager.service.AvailabilityService;
 import pl.edu.salonmanager.salon_manager.service.ReservationService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -23,6 +26,21 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final AvailabilityService availabilityService;
+
+    // GET /api/v1/reservations/availability
+    @GetMapping("/availability")
+    @Operation(summary = "Search availability", description = "Finds available time slots for selected services on a given date")
+    public ResponseEntity<AvailabilityResponseDto> searchAvailability(
+            @RequestParam LocalDate date,
+            @RequestParam List<Long> serviceIds) {
+
+        log.info("REST request to search availability for date: {} and services: {}", date, serviceIds);
+
+        AvailabilityResponseDto result = availabilityService.findAvailableSlots(date, serviceIds);
+
+        return ResponseEntity.ok(result);
+    }
 
     // GET /api/v1/reservations/my
     @GetMapping("/my")

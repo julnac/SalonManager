@@ -38,4 +38,10 @@ public class Employee {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     private List<Reservation> reservations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private List<EmployeeSchedule> schedules = new ArrayList<>();
 }
