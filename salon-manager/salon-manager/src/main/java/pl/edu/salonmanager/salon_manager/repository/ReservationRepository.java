@@ -13,13 +13,13 @@ import pl.edu.salonmanager.salon_manager.model.entity.Reservation;
 import pl.edu.salonmanager.salon_manager.model.entity.User;
 import pl.edu.salonmanager.salon_manager.model.enums.ReservationStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    // Istniejące metody
     List<Reservation> findByUserId(Long userId);
 
     List<Reservation> findByEmployeeId(Long employeeId);
@@ -34,7 +34,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByUserIdAndStatus(Long userId, ReservationStatus status);
 
-    // @Query przykłady - JPQL z projekcją do DTO
     @Query("SELECT new pl.edu.salonmanager.salon_manager.model.dto.response.ReservationDetailDto(" +
            "r.id, r.startTime, r.endTime, r.status, r.totalPrice, " +
            "u.firstName, u.lastName, u.email, " +
@@ -44,7 +43,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     Page<ReservationDetailDto> findReservationDetailsWithUserAndEmployee(
         @Param("status") ReservationStatus status, Pageable pageable);
 
-    // @Query przykład - agregacja JPQL
     @Query("SELECT r.status as status, COUNT(r) as count " +
            "FROM Reservation r GROUP BY r.status")
     List<ReservationStatusCount> countByStatus();
@@ -65,4 +63,27 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     Page<Reservation> findByEmployeeId(Long employeeId, Pageable pageable);
 
     Page<Reservation> findByStatus(ReservationStatus status, Pageable pageable);
+
+
+    @Query("SELECT r FROM Reservation r " +
+           "WHERE r.employee.id = :employeeId " +
+           "AND r.status != 'CANCELLED' " +
+           "AND DATE(r.startTime) = :date " +
+           "ORDER BY r.startTime ASC")
+    List<Reservation> findActiveReservationsByEmployeeAndDate(
+        @Param("employeeId") Long employeeId,
+        @Param("date") LocalDate date
+    );
+
+
+    @Query("SELECT COUNT(r) > 0 FROM Reservation r " +
+           "WHERE r.employee.id = :employeeId " +
+           "AND r.status != 'CANCELLED' " +
+           "AND r.startTime < :endTime " +
+           "AND r.endTime > :startTime")
+    boolean hasOverlappingReservation(
+        @Param("employeeId") Long employeeId,
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
 }

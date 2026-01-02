@@ -45,6 +45,26 @@ INSERT INTO employee_specializations (id, employee_id, service_offer_id, experie
 (5, 2, 5, 6)
 ON CONFLICT (id) DO NOTHING;
 
+-- 6a. EmployeeSchedules (grafiki pracowników)
+INSERT INTO employee_schedules (id, employee_id, day_of_week, start_time, end_time, is_working_day) VALUES
+-- Katarzyna - pracuje Pon-Pt 9:00-17:00
+(1, 1, 'MONDAY', '09:00', '17:00', true),
+(2, 1, 'TUESDAY', '09:00', '17:00', true),
+(3, 1, 'WEDNESDAY', '09:00', '17:00', true),
+(4, 1, 'THURSDAY', '09:00', '17:00', true),
+(5, 1, 'FRIDAY', '09:00', '17:00', true),
+(6, 1, 'SATURDAY', '09:00', '17:00', false),
+(7, 1, 'SUNDAY', '09:00', '17:00', false),
+-- Agnieszka - pracuje Wt-Sob 10:00-18:00
+(8, 2, 'MONDAY', '10:00', '18:00', false),
+(9, 2, 'TUESDAY', '10:00', '18:00', true),
+(10, 2, 'WEDNESDAY', '10:00', '18:00', true),
+(11, 2, 'THURSDAY', '10:00', '18:00', true),
+(12, 2, 'FRIDAY', '10:00', '18:00', true),
+(13, 2, 'SATURDAY', '10:00', '18:00', true),
+(14, 2, 'SUNDAY', '10:00', '18:00', false)
+ON CONFLICT (id) DO NOTHING;
+
 -- 7. Reservations (6 rezerwacji, różne statusy)
 INSERT INTO reservations (id, start_time, end_time, status, total_price, user_id, employee_id) VALUES
 -- Zatwierdzone przeszłe
@@ -85,5 +105,6 @@ SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees));
 SELECT setval('service_offers_id_seq', (SELECT MAX(id) FROM service_offers));
 SELECT setval('employee_specializations_id_seq', (SELECT MAX(id) FROM employee_specializations));
+SELECT setval('employee_schedules_id_seq', (SELECT MAX(id) FROM employee_schedules));
 SELECT setval('reservations_id_seq', (SELECT MAX(id) FROM reservations));
 SELECT setval('reviews_id_seq', (SELECT MAX(id) FROM reviews));

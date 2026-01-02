@@ -38,29 +38,20 @@ public class EmployeeSpecializationService {
     public EmployeeSpecializationDto getSpecializationById(Long id) {
         log.debug("Fetching specialization with id: {}", id);
         EmployeeSpecialization specialization = employeeSpecializationRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("Specialization not found with id: {}", id);
-                return new ResourceNotFoundException("Specialization not found with id: " + id);
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("Specialization not found with id: " + id));
         return mapToDto(specialization);
     }
 
     @Transactional
     public EmployeeSpecializationDto createSpecialization(CreateEmployeeSpecializationRequest request) {
-        log.info("Creating specialization for employee {} and service {}",
+        log.debug("Creating specialization for employee {} and service {}",
                 request.getEmployeeId(), request.getServiceId());
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-            .orElseThrow(() -> {
-                log.error("Employee not found with id: {}", request.getEmployeeId());
-                return new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId());
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId()));
 
         ServiceOffer service = serviceOfferRepository.findById(request.getServiceId())
-            .orElseThrow(() -> {
-                log.error("Service not found with id: {}", request.getServiceId());
-                return new ResourceNotFoundException("Service not found with id: " + request.getServiceId());
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + request.getServiceId()));
 
         EmployeeSpecialization specialization = new EmployeeSpecialization();
         specialization.setEmployee(employee);
@@ -68,21 +59,20 @@ public class EmployeeSpecializationService {
         specialization.setExperienceYears(request.getExperienceYears());
 
         EmployeeSpecialization saved = employeeSpecializationRepository.save(specialization);
-        log.info("Specialization created with id: {}", saved.getId());
+        log.info("Specialization created successfully with id: {}", saved.getId());
         return mapToDto(saved);
     }
 
     @Transactional
     public void deleteSpecialization(Long id) {
-        log.info("Deleting specialization with id: {}", id);
+        log.debug("Deleting specialization with id: {}", id);
 
         if (!employeeSpecializationRepository.existsById(id)) {
-            log.error("Specialization not found with id: {}", id);
             throw new ResourceNotFoundException("Specialization not found with id: " + id);
         }
 
         employeeSpecializationRepository.deleteById(id);
-        log.info("Specialization deleted with id: {}", id);
+        log.info("Specialization deleted successfully with id: {}", id);
     }
 
     // Mapper: Entity → DTO
