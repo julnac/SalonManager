@@ -11,6 +11,11 @@
             <div class="col">
                 <h1>Usługi</h1>
             </div>
+            <div class="col text-end">
+                <a th:href="@{/admin/services/new}" class="btn btn-primary">
+                    Dodaj nową usługę
+                </a>
+            </div>
         </div>
 
         <div class="row">
@@ -25,11 +30,12 @@
                                         <th>Nazwa usługi</th>
                                         <th>Czas trwania</th>
                                         <th>Cena</th>
+                                        <th>Akcje</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr th:if="${#lists.isEmpty(services)}">
-                                        <td colspan="4" class="text-center text-muted">
+                                        <td colspan="5" class="text-center text-muted">
                                             Brak usług do wyświetlenia
                                         </td>
                                     </tr>
@@ -38,6 +44,21 @@
                                         <td th:text="${service.name}">Strzyżenie</td>
                                         <td th:text="${service.durationMinutes} + ' min'">60 min</td>
                                         <td th:text="${#numbers.formatDecimal(service.price, 1, 2)} + ' PLN'">100.00 PLN</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a th:href="@{/admin/services/{id}/edit(id=${service.id})}"
+                                                   class="btn btn-outline-primary" title="Edytuj">
+                                                    Edytuj
+                                                </a>
+                                                <form th:action="@{/admin/services/{id}/delete(id=${service.id})}"
+                                                      method="post" style="display: inline;">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                            onclick="return confirm('Czy na pewno chcesz usunąć tę usługę?')">
+                                                        Usuń
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

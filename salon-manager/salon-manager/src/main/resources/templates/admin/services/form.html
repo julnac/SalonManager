@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title th:text="${isEdit ? 'Edytuj usługę' : 'Dodaj usługę'}">Dodaj usługę</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 th:text="${isEdit ? 'Edytuj usługę' : 'Dodaj nową usługę'}">Dodaj usługę</h1>
+                <a th:href="@{/admin/services}" class="btn btn-secondary btn-sm">Powrót do listy</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="${isEdit ? '/admin/services/' + serviceForm.id + '/edit' : '/admin/services/new'}"
+                              th:object="${serviceForm}"
+                              method="post">
+
+                            <!-- Service Name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nazwa usługi</label>
+                                <input type="text"
+                                       th:field="*{name}"
+                                       id="name"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
+                                       placeholder="np. Strzyżenie damskie">
+                                <div th:if="${#fields.hasErrors('name')}"
+                                     th:errors="*{name}"
+                                     class="invalid-feedback">
+                                    Error
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Cena (PLN)</label>
+                                <input type="number"
+                                       th:field="*{price}"
+                                       id="price"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('price')} ? 'is-invalid' : ''"
+                                       step="0.01"
+                                       min="0"
+                                       placeholder="np. 100.00">
+                                <div th:if="${#fields.hasErrors('price')}"
+                                     th:errors="*{price}"
+                                     class="invalid-feedback">
+                                    Error
+                                </div>
+                            </div>
+
+                            <!-- Duration -->
+                            <div class="mb-3">
+                                <label for="durationMinutes" class="form-label">Czas trwania (minuty)</label>
+                                <input type="number"
+                                       th:field="*{durationMinutes}"
+                                       id="durationMinutes"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('durationMinutes')} ? 'is-invalid' : ''"
+                                       min="1"
+                                       placeholder="np. 60">
+                                <div th:if="${#fields.hasErrors('durationMinutes')}"
+                                     th:errors="*{durationMinutes}"
+                                     class="invalid-feedback">
+                                    Error
+                                </div>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div th:if="${errorMessage}" class="alert alert-danger">
+                                <span th:text="${errorMessage}">Error message</span>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <span th:text="${isEdit ? 'Zapisz zmiany' : 'Dodaj usługę'}">Dodaj</span>
+                                </button>
+                                <a th:href="@{/admin/services}" class="btn btn-secondary">Anuluj</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informacje</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            <strong>Wskazówki:</strong>
+                        </p>
+                        <ul class="text-muted">
+                            <li>Podaj dokładną nazwę usługi</li>
+                            <li>Cena powinna być wyrażona w PLN</li>
+                            <li>Czas trwania w minutach (np. 60 = 1 godzina)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

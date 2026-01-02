@@ -14,6 +14,35 @@
             </div>
         </div>
 
+        <!-- Salon Information -->
+        <div class="row mb-4" th:if="${salon != null}">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Informacje o salonie</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Nazwa:</strong> <span th:text="${salon.name}">Salon</span></p>
+                                <p><strong>Adres:</strong> <span th:text="${salon.address}">Adres</span></p>
+                                <p><strong>Telefon:</strong> <span th:text="${salon.phone}">Telefon</span></p>
+                                <p><strong>Email:</strong> <span th:text="${salon.email}">Email</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Godziny otwarcia:</strong>
+                                   <span th:text="${#temporals.format(salon.openingTime, 'HH:mm')}">09:00</span> -
+                                   <span th:text="${#temporals.format(salon.closingTime, 'HH:mm')}">18:00</span>
+                                </p>
+                                <p><strong>Długość slotu:</strong> <span th:text="${salon.slotDurationMinutes} + ' minut'">15 minut</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="card text-white bg-primary">

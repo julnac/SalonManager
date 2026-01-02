@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import pl.edu.salonmanager.salon_manager.config.SalonProperties;
 import pl.edu.salonmanager.salon_manager.service.StatisticsService;
 
 import java.util.Collections;
@@ -17,10 +18,14 @@ import java.util.Collections;
 public class AdminDashboardController {
 
     private final StatisticsService statisticsService;
+    private final SalonProperties salonProperties;
 
     @GetMapping({"", "/", "/dashboard"})
     public String dashboard(Model model) {
         log.debug("Loading admin dashboard");
+
+        // Add salon information
+        model.addAttribute("salon", salonProperties);
 
         try {
             model.addAttribute("reservationStats", statisticsService.getReservationCountByStatus());
