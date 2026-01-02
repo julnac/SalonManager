@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Usługi</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Usługi</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nazwa usługi</th>
+                                        <th>Czas trwania</th>
+                                        <th>Cena</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(services)}">
+                                        <td colspan="4" class="text-center text-muted">
+                                            Brak usług do wyświetlenia
+                                        </td>
+                                    </tr>
+                                    <tr th:each="service : ${services}">
+                                        <td th:text="${service.id}">1</td>
+                                        <td th:text="${service.name}">Strzyżenie</td>
+                                        <td th:text="${service.durationMinutes} + ' min'">60 min</td>
+                                        <td th:text="${#numbers.formatDecimal(service.price, 1, 2)} + ' PLN'">100.00 PLN</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Szczegóły rezerwacji</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Szczegóły rezerwacji #<span th:text="${reservation.id}">1</span></h1>
+                <a th:href="@{/admin/reservations}" class="btn btn-secondary btn-sm">Powrót do listy</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informacje o rezerwacji</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Status:</strong>
+                                <span class="badge ms-2"
+                                      th:classappend="${reservation.status.name() == 'APPROVED' ? 'bg-success' :
+                                                      (reservation.status.name() == 'CONFIRMED_BY_CLIENT' ? 'bg-info' :
+                                                      (reservation.status.name() == 'CREATED' ? 'bg-warning' : 'bg-secondary'))}"
+                                      th:text="${reservation.status}">
+                                    Status
+                                </span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Cena całkowita:</strong>
+                                <span th:text="${#numbers.formatDecimal(reservation.totalPrice, 1, 2)} + ' PLN'">100.00 PLN</span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Data rozpoczęcia:</strong>
+                                <span th:text="${#temporals.format(reservation.startTime, 'yyyy-MM-dd HH:mm')}">2025-01-15 10:00</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Data zakończenia:</strong>
+                                <span th:text="${#temporals.format(reservation.endTime, 'yyyy-MM-dd HH:mm')}">2025-01-15 11:00</span>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h6>Klient</h6>
+                        <p>
+                            <strong>Imię i nazwisko:</strong> <span th:text="${reservation.user.firstName + ' ' + reservation.user.lastName}">Jan Kowalski</span><br>
+                            <strong>Email:</strong> <span th:text="${reservation.user.email}">email@example.com</span>
+                        </p>
+
+                        <hr>
+
+                        <h6>Pracownik</h6>
+                        <p>
+                            <strong>Imię i nazwisko:</strong> <span th:text="${reservation.employee.firstName + ' ' + reservation.employee.lastName}">Anna Nowak</span><br>
+                            <strong>Email:</strong> <span th:text="${reservation.employee.email}">anna@salon.pl</span>
+                        </p>
+
+                        <hr>
+
+                        <h6>Usługi</h6>
+                        <ul>
+                            <li th:each="service : ${reservation.services}">
+                                <span th:text="${service.name}">Usługa</span> -
+                                <span th:text="${service.durationMinutes} + ' min'">60 min</span> -
+                                <span th:text="${#numbers.formatDecimal(service.price, 1, 2)} + ' PLN'">50.00 PLN</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Akcje</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/admin/reservations/{id}/edit(id=${reservation.id})}"
+                               class="btn btn-primary">
+                                Edytuj rezerwację
+                            </a>
+
+                            <form th:action="@{/admin/reservations/{id}/approve(id=${reservation.id})}"
+                                  method="post"
+                                  th:if="${reservation.status.name() == 'CONFIRMED_BY_CLIENT'}">
+                                <button type="submit" class="btn btn-success w-100"
+                                        onclick="return confirm('Czy na pewno chcesz zatwierdzić tę rezerwację?')">
+                                    Zatwierdź rezerwację
+                                </button>
+                            </form>
+
+                            <form th:action="@{/admin/reservations/{id}/cancel(id=${reservation.id})}"
+                                  method="post"
+                                  th:if="${reservation.status.name() != 'CANCELLED'}">
+                                <button type="submit" class="btn btn-danger w-100"
+                                        onclick="return confirm('Czy na pewno chcesz anulować tę rezerwację?')">
+                                    Anuluj rezerwację
+                                </button>
+                            </form>
+
+                            <div th:if="${reservation.status.name() == 'CANCELLED'}"
+                                 class="alert alert-secondary mb-0">
+                                Rezerwacja anulowana
+                            </div>
+
+                            <div th:if="${reservation.status.name() == 'APPROVED'}"
+                                 class="alert alert-success mb-0">
+                                Rezerwacja zatwierdzona
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

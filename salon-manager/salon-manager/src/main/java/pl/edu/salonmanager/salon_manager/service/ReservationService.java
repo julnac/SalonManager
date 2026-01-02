@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.edu.salonmanager.salon_manager.exception.BadRequestException;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
 import pl.edu.salonmanager.salon_manager.model.dto.request.CreateReservationRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.request.UpdateReservationAdminRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.Employee;
 import pl.edu.salonmanager.salon_manager.model.entity.Reservation;
 import pl.edu.salonmanager.salon_manager.model.entity.ServiceOffer;
@@ -18,6 +19,7 @@ import pl.edu.salonmanager.salon_manager.repository.ServiceOfferRepository;
 import pl.edu.salonmanager.salon_manager.repository.UserRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -122,5 +124,86 @@ public class ReservationService {
         Reservation updated = reservationRepository.save(reservation);
         log.info("Reservation {} approved successfully by admin", id);
         return updated;
+    }
+
+    // Admin methods
+
+    @Transactional(readOnly = true)
+    public List<Reservation> getAllReservations(ReservationStatus status) {
+        log.debug("Fetching all reservations with status filter: {}", status);
+        if (status == null) {
+            return reservationRepository.findAll();
+        }
+        return reservationRepository.findByStatus(status);
+    }
+
+    @Transactional
+    public Reservation updateReservation(Long id, UpdateReservationAdminRequest request) {
+        log.debug("Updating reservation with id: {}", id);
+
+        Reservation reservation = getReservationById(id);
+
+        // Check for overlapping reservations
+        if (reservationRepository.hasOverlappingReservation(
+                request.getEmployeeId(),
+                request.getStartTime(),
+                request.getEndTime())) {
+            log.warn("Employee {} already has a reservation at requested time", request.getEmployeeId());
+            throw new BadRequestException("Employee already has a reservation at this time");
+        }
+
+        Employee employee = employeeRepository.findById(request.getEmployeeId())
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId()));
+
+        Set<ServiceOffer> services = new HashSet<>();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
+        for (Long serviceId : request.getServiceIds()) {
+            ServiceOffer service = serviceOfferRepository.findById(serviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + serviceId));
+            services.add(service);
+            totalPrice = totalPrice.add(service.getPrice());
+        }
+
+        reservation.setEmployee(employee);
+        reservation.setStartTime(request.getStartTime());
+        reservation.setEndTime(request.getEndTime());
+        reservation.setServices(services);
+        reservation.setTotalPrice(totalPrice);
+
+        Reservation updated = reservationRepository.save(reservation);
+        log.info("Reservation {} updated successfully by admin", id);
+        return updated;
+    }
+
+    @Transactional
+    public Reservation cancelReservation(Long id) {
+        log.debug("Cancelling reservation with id: {}", id);
+
+        Reservation reservation = getReservationById(id);
+
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            log.warn("Attempt to cancel already cancelled reservation: {}", id);
+            throw new BadRequestException("Reservation is already cancelled");
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        Reservation updated = reservationRepository.save(reservation);
+        log.info("Reservation {} cancelled successfully", id);
+        return updated;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Reservation> getReservationsByEmployeeAndDateRange(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        log.debug("Fetching reservations for employee {} between {} and {}", employeeId, startDate, endDate);
+
+        Employee employee = employeeRepository.findById(employeeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+
+        return reservationRepository.findByEmployeeAndStartTimeBetween(
+            employee,
+            startDate.atStartOfDay(),
+            endDate.plusDays(1).atStartOfDay()
+        );
     }
 }

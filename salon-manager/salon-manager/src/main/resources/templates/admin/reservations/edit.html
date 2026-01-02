@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Edytuj rezerwację</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Edytuj rezerwację #<span th:text="${reservation.id}">1</span></h1>
+                <a th:href="@{/admin/reservations/{id}(id=${reservation.id})}" class="btn btn-secondary btn-sm">Anuluj</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/admin/reservations/{id}/edit(id=${reservation.id})}"
+                              th:object="${reservationForm}"
+                              method="post">
+
+                            <!-- Employee Selection -->
+                            <div class="mb-3">
+                                <label for="employeeId" class="form-label">Pracownik</label>
+                                <select th:field="*{employeeId}"
+                                        id="employeeId"
+                                        class="form-select"
+                                        th:classappend="${#fields.hasErrors('employeeId')} ? 'is-invalid' : ''">
+                                    <option value="">Wybierz pracownika</option>
+                                    <option th:each="emp : ${employees}"
+                                            th:value="${emp.id}"
+                                            th:text="${emp.firstName + ' ' + emp.lastName}">
+                                        Pracownik
+                                    </option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('employeeId')}"
+                                     th:errors="*{employeeId}"
+                                     class="invalid-feedback">
+                                    Error
+                                </div>
+                            </div>
+
+                            <!-- Start Time -->
+                            <div class="mb-3">
+                                <label for="startTime" class="form-label">Data i godzina rozpoczęcia</label>
+                                <input type="datetime-local"
+                                       th:field="*{startTime}"
+                                       id="startTime"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('startTime')} ? 'is-invalid' : ''">
+                                <div th:if="${#fields.hasErrors('startTime')}"
+                                     th:errors="*{startTime}"
+                                     class="invalid-feedback">
+                                    Error
+                                </div>
+                            </div>
+
+                            <!-- End Time -->
+                            <div class="mb-3">
+                                <label for="endTime" class="form-label">Data i godzina zakończenia</label>
+                                <input type="datetime-local"
+                                       th:field="*{endTime}"
+                                       id="endTime"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('endTime')} ? 'is-invalid' : ''">
+                                <div th:if="${#fields.hasErrors('endTime')}"
+                                     th:errors="*{endTime}"
+                                     class="invalid-feedback">
+                                    Error
+                                </div>
+                            </div>
+
+                            <!-- Services Selection -->
+                            <div class="mb-3">
+                                <label class="form-label">Usługi</label>
+                                <div th:if="${#fields.hasErrors('serviceIds')}" class="alert alert-danger">
+                                    <span th:errors="*{serviceIds}">Service error</span>
+                                </div>
+                                <div th:each="service : ${services}" class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           th:field="*{serviceIds}"
+                                           th:value="${service.id}"
+                                           th:id="${'service-' + service.id}">
+                                    <label class="form-check-label" th:for="${'service-' + service.id}">
+                                        <span th:text="${service.name}">Usługa</span> -
+                                        <span th:text="${service.durationMinutes} + ' min'">60 min</span> -
+                                        <span th:text="${#numbers.formatDecimal(service.price, 1, 2)} + ' PLN'">50.00 PLN</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div th:if="${errorMessage}" class="alert alert-danger">
+                                <span th:text="${errorMessage}">Error message</span>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                                <a th:href="@{/admin/reservations/{id}(id=${reservation.id})}"
+                                   class="btn btn-secondary">Anuluj</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informacje</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Klient:</strong><br>
+                           <span th:text="${reservation.user.firstName + ' ' + reservation.user.lastName}">Jan Kowalski</span>
+                        </p>
+                        <p><strong>Email:</strong><br>
+                           <span th:text="${reservation.user.email}">email@example.com</span>
+                        </p>
+                        <p><strong>Status:</strong><br>
+                           <span class="badge"
+                                 th:classappend="${reservation.status.name() == 'APPROVED' ? 'bg-success' :
+                                                 (reservation.status.name() == 'CONFIRMED_BY_CLIENT' ? 'bg-info' :
+                                                 (reservation.status.name() == 'CREATED' ? 'bg-warning' : 'bg-secondary'))}"
+                                 th:text="${reservation.status}">
+                               Status
+                           </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

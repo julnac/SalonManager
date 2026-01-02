@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Salon Manager</title>
+
+    <!-- Bootstrap CSS -->
+    <link th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/admin-custom.css}" rel="stylesheet">
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{layout/fragments/header :: header}"></div>
+
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        <!-- Alert Messages -->
+        <div th:replace="~{layout/fragments/alert :: alerts}"></div>
+
+        <!-- Page Content -->
+        <div layout:fragment="content">
+            <!-- Page-specific content will be inserted here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:replace="~{layout/fragments/footer :: footer}"></div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- Custom JS -->
+    <script th:src="@{/js/admin-custom.js}"></script>
+
+    <!-- Page-specific scripts -->
+    <th:block layout:fragment="scripts">
+        <!-- Page-specific scripts will be inserted here -->
+    </th:block>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Rezerwacje</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Rezerwacje</h1>
+            </div>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <form th:action="@{/admin/reservations}" method="get">
+                    <div class="input-group">
+                        <select name="status" class="form-select">
+                            <option value="">Wszystkie statusy</option>
+                            <option th:each="s : ${statuses}"
+                                    th:value="${s}"
+                                    th:text="${s}"
+                                    th:selected="${s == selectedStatus}">
+                            </option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Filtruj</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reservations Table -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Klient</th>
+                                        <th>Pracownik</th>
+                                        <th>Data i godzina</th>
+                                        <th>Usługi</th>
+                                        <th>Cena</th>
+                                        <th>Status</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(reservations)}">
+                                        <td colspan="8" class="text-center text-muted">
+                                            Brak rezerwacji do wyświetlenia
+                                        </td>
+                                    </tr>
+                                    <tr th:each="res : ${reservations}">
+                                        <td th:text="${res.id}">1</td>
+                                        <td>
+                                            <span th:text="${res.user.firstName + ' ' + res.user.lastName}">Jan Kowalski</span>
+                                            <br>
+                                            <small class="text-muted" th:text="${res.user.email}">email@example.com</small>
+                                        </td>
+                                        <td th:text="${res.employee.firstName + ' ' + res.employee.lastName}">Anna Nowak</td>
+                                        <td>
+                                            <span th:text="${#temporals.format(res.startTime, 'yyyy-MM-dd HH:mm')}">2025-01-15 10:00</span>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <span th:each="service, iter : ${res.services}">
+                                                    <span th:text="${service.name}">Usługa</span>
+                                                    <span th:if="${!iter.last}">, </span>
+                                                </span>
+                                            </small>
+                                        </td>
+                                        <td th:text="${#numbers.formatDecimal(res.totalPrice, 1, 2)} + ' PLN'">100.00 PLN</td>
+                                        <td>
+                                            <span class="badge"
+                                                  th:classappend="${res.status.name() == 'APPROVED' ? 'bg-success' :
+                                                                  (res.status.name() == 'CONFIRMED_BY_CLIENT' ? 'bg-info' :
+                                                                  (res.status.name() == 'CREATED' ? 'bg-warning' : 'bg-secondary'))}"
+                                                  th:text="${res.status}">
+                                                Status
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a th:href="@{/admin/reservations/{id}(id=${res.id})}"
+                                                   class="btn btn-outline-primary" title="Szczegóły">
+                                                    Szczegóły
+                                                </a>
+                                                <a th:href="@{/admin/reservations/{id}/edit(id=${res.id})}"
+                                                   class="btn btn-outline-secondary" title="Edytuj">
+                                                    Edytuj
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

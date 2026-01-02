@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>500 - Błąd serwera</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <div class="card">
+                    <div class="card-body py-5">
+                        <h1 class="display-1 text-danger">500</h1>
+                        <h2 class="mb-4">Błąd serwera</h2>
+                        <p class="text-muted mb-4">
+                            Przepraszamy, wystąpił nieoczekiwany błąd. Prosimy spróbować ponownie później.
+                        </p>
+                        <a th:href="@{/admin/dashboard}" class="btn btn-primary">
+                            Powrót do Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

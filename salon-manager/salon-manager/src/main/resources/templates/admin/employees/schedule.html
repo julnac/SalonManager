@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Terminarz pracownika</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Terminarz: <span th:text="${employee.firstName + ' ' + employee.lastName}">Pracownik</span></h1>
+                <a th:href="@{/admin/employees}" class="btn btn-secondary btn-sm">Powrót do listy</a>
+            </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form th:action="@{/admin/employees/{id}/schedule(id=${employee.id})}" method="get" class="row g-3">
+                    <div class="col-auto">
+                        <label for="startDate" class="col-form-label">Od:</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="date" id="startDate" name="startDate" class="form-control"
+                               th:value="${startDate}">
+                    </div>
+                    <div class="col-auto">
+                        <label for="endDate" class="col-form-label">Do:</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="date" id="endDate" name="endDate" class="form-control"
+                               th:value="${endDate}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Filtruj</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Schedule Display -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            Rezerwacje od <span th:text="${startDate}">2025-01-01</span>
+                            do <span th:text="${endDate}">2025-01-07</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(reservations)}" class="alert alert-info">
+                            Brak rezerwacji w wybranym okresie
+                        </div>
+
+                        <div class="table-responsive" th:if="${!#lists.isEmpty(reservations)}">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data i godzina</th>
+                                        <th>Klient</th>
+                                        <th>Usługi</th>
+                                        <th>Status</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="res : ${reservations}">
+                                        <td>
+                                            <strong th:text="${#temporals.format(res.startTime, 'yyyy-MM-dd')}">2025-01-15</strong><br>
+                                            <span th:text="${#temporals.format(res.startTime, 'HH:mm')} + ' - ' + ${#temporals.format(res.endTime, 'HH:mm')}">10:00 - 11:00</span>
+                                        </td>
+                                        <td>
+                                            <span th:text="${res.user.firstName + ' ' + res.user.lastName}">Jan Kowalski</span><br>
+                                            <small class="text-muted" th:text="${res.user.email}">email@example.com</small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <span th:each="service, iter : ${res.services}">
+                                                    <span th:text="${service.name}">Usługa</span>
+                                                    <span th:if="${!iter.last}">, </span>
+                                                </span>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge"
+                                                  th:classappend="${res.status.name() == 'APPROVED' ? 'bg-success' :
+                                                                  (res.status.name() == 'CONFIRMED_BY_CLIENT' ? 'bg-info' :
+                                                                  (res.status.name() == 'CREATED' ? 'bg-warning' : 'bg-secondary'))}"
+                                                  th:text="${res.status}">
+                                                Status
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/admin/reservations/{id}(id=${res.id})}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Szczegóły
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

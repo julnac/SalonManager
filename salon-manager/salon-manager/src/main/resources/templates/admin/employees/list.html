@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Pracownicy</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Pracownicy</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Imię i nazwisko</th>
+                                        <th>Email</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(employees)}">
+                                        <td colspan="4" class="text-center text-muted">
+                                            Brak pracowników do wyświetlenia
+                                        </td>
+                                    </tr>
+                                    <tr th:each="emp : ${employees}">
+                                        <td th:text="${emp.id}">1</td>
+                                        <td th:text="${emp.firstName + ' ' + emp.lastName}">Jan Kowalski</td>
+                                        <td th:text="${emp.email}">jan@salon.pl</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a th:href="@{/admin/employees/{id}/schedule(id=${emp.id})}"
+                                                   class="btn btn-outline-primary" title="Terminarz">
+                                                    Terminarz
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

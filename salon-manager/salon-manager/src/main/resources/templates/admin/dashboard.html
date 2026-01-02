@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Dashboard Administracyjny</h1>
+                <p class="text-muted">Witaj w panelu administracyjnym Salon Manager</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Rezerwacje</h5>
+                        <p class="card-text">Zarządzaj rezerwacjami klientów</p>
+                        <a th:href="@{/admin/reservations}" class="btn btn-light btn-sm">Przejdź</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Pracownicy</h5>
+                        <p class="card-text">Zarządzaj pracownikami</p>
+                        <a th:href="@{/admin/employees}" class="btn btn-light btn-sm">Przejdź</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">Usługi</h5>
+                        <p class="card-text">Zarządzaj ofertą usług</p>
+                        <a th:href="@{/admin/services}" class="btn btn-light btn-sm">Przejdź</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">Grafiki</h5>
+                        <p class="card-text">Sprawdź terminarze pracowników</p>
+                        <a th:href="@{/admin/employees}" class="btn btn-light btn-sm">Przejdź</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
