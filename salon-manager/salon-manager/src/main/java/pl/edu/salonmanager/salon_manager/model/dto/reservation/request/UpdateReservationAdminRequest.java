@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.request;
+package pl.edu.salonmanager.salon_manager.model.dto.reservation.request;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,10 +14,6 @@ public class UpdateReservationAdminRequest {
     @NotNull(message = "Start time is required")
     @Future(message = "Start time must be in the future")
     private LocalDateTime startTime;
-
-    @NotNull(message = "End time is required")
-    @Future(message = "End time must be in the future")
-    private LocalDateTime endTime;
 
     @NotNull(message = "Employee is required")
     private Long employeeId;

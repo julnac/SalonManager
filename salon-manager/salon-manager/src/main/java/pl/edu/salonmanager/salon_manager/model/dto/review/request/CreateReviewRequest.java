@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.request;
+package pl.edu.salonmanager.salon_manager.model.dto.review.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

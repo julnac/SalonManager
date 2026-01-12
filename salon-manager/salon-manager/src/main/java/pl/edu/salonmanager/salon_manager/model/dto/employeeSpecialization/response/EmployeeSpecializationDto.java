@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.response;
+package pl.edu.salonmanager.salon_manager.model.dto.employeeSpecialization.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

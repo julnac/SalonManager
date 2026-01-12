@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.request;
+package pl.edu.salonmanager.salon_manager.model.dto.employeeSpecialization.request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.request;
+package pl.edu.salonmanager.salon_manager.model.dto.employee.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

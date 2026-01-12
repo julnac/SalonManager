@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.request;
+package pl.edu.salonmanager.salon_manager.model.dto.reservation.request;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
@@ -14,10 +14,6 @@ public class CreateReservationRequest {
     @NotNull
     @Future
     private LocalDateTime startTime;
-
-    @NotNull
-    @Future
-    private LocalDateTime endTime;
 
     @NotNull
     private Long employeeId;

@@ -1,4 +1,4 @@
-package pl.edu.salonmanager.salon_manager.model.dto.request;
+package pl.edu.salonmanager.salon_manager.model.dto.user.request;
 import jakarta.validation.constraints.*;
 import pl.edu.salonmanager.salon_manager.validation.StrongPassword;
 
