@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Moje rezerwacje</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Moje rezerwacje</h1>
+                <a th:href="@{/client/reservations/add}" class="btn btn-primary">Nowa rezerwacja</a>
+            </div>
+
+            <div th:if="${#lists.isEmpty(reservations)}" class="alert alert-info">
+                <p class="mb-0">Nie masz jeszcze żadnych rezerwacji. <a th:href="@{/client/reservations/add}">Utwórz pierwszą!</a></p>
+            </div>
+
+            <div class="card mb-3" th:each="res : ${reservations}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>
+                                <span th:text="${#temporals.format(res.startTime, 'dd MMMM yyyy, HH:mm')}"></span>
+                                <span class="badge ms-2"
+                                      th:classappend="${res.status.name() == 'CREATED' ? 'bg-warning text-dark' : 
+                                                       (res.status.name() == 'APPROVED_BY_SALON' ? 'bg-info' : 
+                                                       (res.status.name() == 'CONFIRMED_BY_CLIENT' ? 'bg-success' : 'bg-secondary'))}"
+                                      th:text="${res.status.name()}">
+                                </span>
+                            </h5>
+                            <p class="mb-1"><strong>Pracownik:</strong> <span th:text="${res.employee.firstName + ' ' + res.employee.lastName}"></span></p>
+                            <p class="mb-1"><strong>Usługi:</strong> 
+                                <span th:each="service, iterStat : ${res.services}">
+                                    <span th:text="${service.name}"></span><span th:if="${!iterStat.last}">, </span>
+                                </span>
+                            </p>
+                            <p class="mb-0"><strong>Cena:</strong> <span th:text="${res.totalPrice}"></span> PLN</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+
+                            <form th:if="${res.status.name() == 'CREATED'}"
+                                  th:action="@{/client/reservations/{id}/confirm(id=${res.id})}" 
+                                  method="post" 
+                                  class="d-inline">
+                                <button type="submit" class="btn btn-success btn-sm">Potwierdź</button>
+                            </form>
+                            <form th:if="${res.status.name() != 'APPROVED_BY_SALON' or res.status.name() != 'CANCELLED'}"
+                                  th:action="@{/client/reservations/{id}/cancel(id=${res.id})}" 
+                                  method="post" 
+                                  class="d-inline"
+                                  onsubmit="return confirmDelete('Czy na pewno chcesz anulować tę rezerwację?')">
+                                <button type="submit" class="btn btn-danger btn-sm">Anuluj</button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

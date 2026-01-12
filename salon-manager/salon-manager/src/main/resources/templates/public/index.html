@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Strona główna</title>
+</head>
+<body>
+    <div layout:fragment="content">
+
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 th:text="${salon != null ? salon.name : 'Witamy w naszym salonie'}">Salon Manager</h1>
+                <p class="lead" th:text="${salon != null ? salon.address : 'Profesjonalne usługi fryzjerskie'}">
+                    Adres salonu
+                </p>
+                <div class="mt-4">
+                    <a sec:authorize="isAuthenticated()" th:href="@{/client/booking}" class="btn btn-light btn-lg me-2">Umów wizytę online</a>
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-light btn-lg me-2">Zaloguj się</a>
+                    <a th:href="@{/services}" class="btn btn-outline-light btn-lg">Zobacz usługi</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mb-5" th:if="${salon != null}">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="info-box">
+                        <h3 class="text-center mb-4">Dane kontaktowe</h3>
+                        <div class="row text-center">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Adres:</strong><br><span th:text="${salon.address}"></span></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Telefon:</strong><br><span th:text="${salon.phone}"></span></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Email:</strong><br><span th:text="${salon.email}"></span></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Godziny otwarcia:</strong><br>
+                                   <span th:text="${#temporals.format(salon.openingTime, 'HH:mm')}">09:00</span> -
+                                   <span th:text="${#temporals.format(salon.closingTime, 'HH:mm')}">18:00</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

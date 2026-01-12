@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Moje konto</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <h1>Witaj, <span th:text="${user.firstName}">Użytkownik</span>!</h1>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Twoje dane</h5>
+                            <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+                            <p><strong>Imię:</strong> <span th:text="${user.firstName}"></span></p>
+                            <p><strong>Nazwisko:</strong> <span th:text="${user.lastName}"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Szybkie akcje</h5>
+                            <a class="btn btn-primary mb-2 w-100">
+                                Nowa rezerwacja
+                            </a>
+                            <a th:href="@{/client/reservations}" class="btn btn-outline-primary mb-2 w-100">
+                                Moje rezerwacje
+                            </a>
+                            <a th:href="@{/client/reviews/add}" class="btn btn-outline-secondary w-100">
+                                Dodaj opinię
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

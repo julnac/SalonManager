@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <span th:fragment="status(statusValue)">
+        <span th:if="${statusValue.name() == 'CREATED'}" class="badge bg-secondary">
+            Utworzona
+        </span>
+        <span th:if="${statusValue.name() == 'CONFIRMED_BY_CLIENT'}" class="badge bg-info">
+            Potwierdzona przez klienta
+        </span>
+        <span th:if="${statusValue.name() == 'APPROVED'}" class="badge bg-success">
+            Zatwierdzona przez salon
+        </span>
+        <span th:if="${statusValue.name() == 'CANCELLED'}" class="badge bg-danger">
+            Anulowana
+        </span>
+    </span>
+</body>
+</html>

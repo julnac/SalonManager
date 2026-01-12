@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Rejestracja</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="row justify-content-center mt-5">
+                <div class="col-md-6 col-lg-5">
+                    <div class="card shadow">
+                        <div class="card-body p-4">
+                            <h2 class="card-title text-center mb-4">Rejestracja</h2>
+
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <span th:text="${errorMessage}">Error</span>
+                            </div>
+
+                            <form th:action="@{/register}"
+                                  th:object="${registerForm}"
+                                  method="post">
+
+                                <div class="mb-3">
+                                    <label for="firstName" class="form-label">Imię</label>
+                                    <input type="text"
+                                           th:field="*{firstName}"
+                                           id="firstName"
+                                           class="form-control"
+                                           th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid' : ''"
+                                           placeholder="Twoje imię">
+                                    <div th:if="${#fields.hasErrors('firstName')}"
+                                         th:errors="*{firstName}"
+                                         class="invalid-feedback">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="lastName" class="form-label">Nazwisko</label>
+                                    <input type="text"
+                                           th:field="*{lastName}"
+                                           id="lastName"
+                                           class="form-control"
+                                           th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid' : ''"
+                                           placeholder="Twoje nazwisko">
+                                    <div th:if="${#fields.hasErrors('lastName')}"
+                                         th:errors="*{lastName}"
+                                         class="invalid-feedback">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email"
+                                           th:field="*{email}"
+                                           id="email"
+                                           class="form-control"
+                                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                                           placeholder="twoj@email.pl">
+                                    <div th:if="${#fields.hasErrors('email')}"
+                                         th:errors="*{email}"
+                                         class="invalid-feedback">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Hasło</label>
+                                    <input type="password"
+                                           th:field="*{password}"
+                                           id="password"
+                                           class="form-control"
+                                           th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+                                           placeholder="Minimum 6 znaków">
+                                    <div th:if="${#fields.hasErrors('password')}"
+                                         th:errors="*{password}"
+                                         class="invalid-feedback">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Potwierdź hasło</label>
+                                    <input type="password"
+                                           th:field="*{confirmPassword}"
+                                           id="confirmPassword"
+                                           class="form-control"
+                                           th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
+                                           placeholder="Powtórz hasło">
+                                    <div th:if="${#fields.hasErrors('confirmPassword')}"
+                                         th:errors="*{confirmPassword}"
+                                         class="invalid-feedback">
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 mb-3">
+                                    Zarejestruj się
+                                </button>
+
+                                <div class="text-center">
+                                    <p class="mb-0">
+                                        Masz już konto?
+                                        <a th:href="@{/login}">Zaloguj się</a>
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
