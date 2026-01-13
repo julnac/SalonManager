@@ -11,13 +11,13 @@ import java.util.Set;
 @Data
 public class CreateReservationRequest {
 
-    @NotNull
-    @Future
+    @NotNull(message = "Start time is required")
+    @Future(message = "Start time must be in the future")
     private LocalDateTime startTime;
 
-    @NotNull
+    @NotNull(message = "Employee is required")
     private Long employeeId;
 
-    @NotEmpty
+    @NotEmpty(message = "At least one service must be selected")
     private Set<Long> serviceIds;
 }

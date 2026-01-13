@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
 import pl.edu.salonmanager.salon_manager.exception.UnauthorizedException;
 import pl.edu.salonmanager.salon_manager.model.dto.employeeSchedule.response.AvailabilityResponseDto;
+import pl.edu.salonmanager.salon_manager.model.dto.reservation.request.UpdateReservationRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.reservation.response.ReservationDetailDto;
 import pl.edu.salonmanager.salon_manager.model.dto.reservation.request.CreateReservationRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.Reservation;
 import pl.edu.salonmanager.salon_manager.model.entity.User;
+import pl.edu.salonmanager.salon_manager.model.enums.ReservationStatus;
 import pl.edu.salonmanager.salon_manager.repository.UserRepository;
 import pl.edu.salonmanager.salon_manager.service.AvailabilityService;
 import pl.edu.salonmanager.salon_manager.service.ReservationService;
@@ -97,8 +99,6 @@ public class ReservationController {
     @Operation(summary = "Approve reservation (ADMIN)", description = "Approves a reservation by admin")
     public ResponseEntity<ReservationDetailDto> approveReservation(@PathVariable Long id) {
 
-        log.info("REST request to approve reservation: {}", id);
-
         Reservation updated = reservationService.approveReservation(id);
         return ResponseEntity.ok(mapToDto(updated));
     }
@@ -107,9 +107,7 @@ public class ReservationController {
     @GetMapping
     @Operation(summary = "Get all reservations (ADMIN)", description = "Returns all reservations with optional status filter")
     public ResponseEntity<List<ReservationDetailDto>> getAllReservations(
-            @RequestParam(required = false) pl.edu.salonmanager.salon_manager.model.enums.ReservationStatus status) {
-
-        log.info("REST request to get all reservations with status filter: {}", status);
+            @RequestParam(required = false) ReservationStatus status) {
 
         List<Reservation> reservations = reservationService.getAllReservations(status);
         List<ReservationDetailDto> result = reservations.stream()
@@ -152,18 +150,14 @@ public class ReservationController {
                description = "Cancels a reservation. Admin can cancel any reservation, user can only cancel their own (except APPROVED ones)")
     public ResponseEntity<ReservationDetailDto> cancelReservation(@PathVariable Long id) {
 
-        boolean isAdmin = isCurrentUserAdmin();
-        Long userId = isAdmin ? null : getCurrentUserId();
+        Long userId = getCurrentUserId();
+        log.info("REST request to cancel reservation {} by {}", id, userId);
 
-        log.info("REST request to cancel reservation {} by {} (userId: {})",
-                id, isAdmin ? "ADMIN" : "USER", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        Reservation updated;
-        if (isAdmin) {
-            updated = reservationService.cancelReservation(id);
-        } else {
-            updated = reservationService.cancelReservationByClient(id, userId);
-        }
+        Reservation updated = reservationService.cancelReservation(id, user);
+
         return ResponseEntity.ok(mapToDto(updated));
     }
 
@@ -173,20 +167,13 @@ public class ReservationController {
                description = "Updates a reservation. Cannot update APPROVED reservations for users. Admin can update any reservation.")
     public ResponseEntity<ReservationDetailDto> updateReservation(
             @PathVariable Long id,
-            @Valid @RequestBody pl.edu.salonmanager.salon_manager.model.dto.reservation.request.UpdateReservationAdminRequest request) {
+            @Valid @RequestBody UpdateReservationRequest request) {
 
-        boolean isAdmin = isCurrentUserAdmin();
-        Long userId = isAdmin ? null : getCurrentUserId();
+        Long userId = getCurrentUserId();
+        log.info("REST request to update reservation {} by {}", id, userId);
 
-        log.info("REST request to update reservation {} by {} (userId: {})",
-                id, isAdmin ? "ADMIN" : "USER", userId);
+        Reservation updated = reservationService.updateReservation(id, request);
 
-        Reservation updated;
-        if (isAdmin) {
-            updated = reservationService.updateReservation(id, request);
-        } else {
-            updated = reservationService.updateReservationByClient(id, userId, request);
-        }
         return ResponseEntity.ok(mapToDto(updated));
     }
 
@@ -196,24 +183,13 @@ public class ReservationController {
             throw new UnauthorizedException("User not authenticated");
         }
 
-        String email = authentication.getName(); // Email is used as username
+        String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         return user.getId();
     }
 
-    private boolean isCurrentUserAdmin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-
-        return authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
-    }
-
-    // Mapper Reservation → DTO
     private ReservationDetailDto mapToDto(Reservation reservation) {
         return new ReservationDetailDto(
                 reservation.getId(),
