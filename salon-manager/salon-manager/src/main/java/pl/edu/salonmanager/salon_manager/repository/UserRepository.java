@@ -15,8 +15,16 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
-
     boolean existsByEmail(String email);
+
+    @Query("""
+        SELECT COUNT(r) > 0
+        FROM User u
+        JOIN u.roles r
+        WHERE u.id = :userId
+          AND r.name = 'ADMIN'
+     """)
+    boolean hasAdminRole(@Param("userId") Long userId);
 
     // @Query przykład - JPQL z JOIN przez relację
     @Query("SELECT DISTINCT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
@@ -30,6 +38,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
            nativeQuery = true)
     Page<User> searchUsers(@Param("searchTerm") String searchTerm, Pageable pageable);
 
-    // Paginacja dla istniejących metod
-    Page<User> findByEnabled(boolean enabled, Pageable pageable);
 }

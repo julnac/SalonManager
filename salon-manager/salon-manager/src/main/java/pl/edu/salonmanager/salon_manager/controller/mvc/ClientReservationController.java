@@ -48,7 +48,10 @@ public class ClientReservationController {
             RedirectAttributes redirectAttributes) {
         try {
             Long userId = getCurrentUserId();
-            reservationService.cancelReservationByClient(id, userId);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+            reservationService.cancelReservation(id, user);
             redirectAttributes.addFlashAttribute("successMessage", "Rezerwacja anulowana");
             return "redirect:/client/reservations";
         } catch (Exception e) {
