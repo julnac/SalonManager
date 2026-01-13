@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
-import pl.edu.salonmanager.salon_manager.model.dto.response.ReviewDto;
-import pl.edu.salonmanager.salon_manager.model.dto.request.CreateReviewRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.review.response.ReviewDto;
+import pl.edu.salonmanager.salon_manager.model.dto.review.request.CreateReviewRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.Review;
 import pl.edu.salonmanager.salon_manager.model.entity.User;
 import pl.edu.salonmanager.salon_manager.repository.ReviewRepository;
@@ -67,7 +67,6 @@ public class ReviewService {
         log.info("Review deleted successfully with id: {}", id);
     }
 
-    // Mapper: Entity → DTO
     private ReviewDto mapToDto(Review entity) {
         return new ReviewDto(
                 entity.getId(),

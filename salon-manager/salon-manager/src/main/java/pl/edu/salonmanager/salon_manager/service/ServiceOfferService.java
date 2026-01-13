@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
-import pl.edu.salonmanager.salon_manager.model.dto.response.ServiceOfferDto;
-import pl.edu.salonmanager.salon_manager.model.dto.request.CreateServiceRequest;
-import pl.edu.salonmanager.salon_manager.model.dto.request.UpdateServiceRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.response.ServiceOfferDto;
+import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.request.CreateServiceRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.request.UpdateServiceRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.ServiceOffer;
 import pl.edu.salonmanager.salon_manager.repository.ServiceOfferRepository;
 
@@ -79,7 +79,6 @@ public class ServiceOfferService {
         log.info("Service deleted successfully with id: {}", id);
     }
 
-    // Mapper: Entity → DTO
     private ServiceOfferDto mapToDto(ServiceOffer entity) {
         return new ServiceOfferDto(
                 entity.getId(),

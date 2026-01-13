@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
-import pl.edu.salonmanager.salon_manager.model.dto.response.EmployeeSpecializationDto;
-import pl.edu.salonmanager.salon_manager.model.dto.request.CreateEmployeeSpecializationRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.employeeSpecialization.response.EmployeeSpecializationDto;
+import pl.edu.salonmanager.salon_manager.model.dto.employeeSpecialization.request.CreateEmployeeSpecializationRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.Employee;
 import pl.edu.salonmanager.salon_manager.model.entity.EmployeeSpecialization;
 import pl.edu.salonmanager.salon_manager.model.entity.ServiceOffer;
@@ -75,7 +75,6 @@ public class EmployeeSpecializationService {
         log.info("Specialization deleted successfully with id: {}", id);
     }
 
-    // Mapper: Entity → DTO
     private EmployeeSpecializationDto mapToDto(EmployeeSpecialization entity) {
         return new EmployeeSpecializationDto(
                 entity.getId(),

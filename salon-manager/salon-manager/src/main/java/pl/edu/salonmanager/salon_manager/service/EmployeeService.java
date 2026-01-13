@@ -6,11 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.salonmanager.salon_manager.exception.BadRequestException;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
-import pl.edu.salonmanager.salon_manager.model.dto.response.EmployeeDto;
-import pl.edu.salonmanager.salon_manager.model.dto.request.CreateEmployeeRequest;
-import pl.edu.salonmanager.salon_manager.model.dto.request.UpdateEmployeeRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.employee.response.EmployeeDto;
+import pl.edu.salonmanager.salon_manager.model.dto.employee.request.CreateEmployeeRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.employee.request.UpdateEmployeeRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.employeeSchedule.response.EmployeeScheduleDto;
 import pl.edu.salonmanager.salon_manager.model.entity.Employee;
+import pl.edu.salonmanager.salon_manager.model.entity.EmployeeSchedule;
 import pl.edu.salonmanager.salon_manager.repository.EmployeeRepository;
+import pl.edu.salonmanager.salon_manager.repository.EmployeeScheduleRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final EmployeeScheduleRepository employeeScheduleRepository;
 
     @Transactional(readOnly = true)
     public List<EmployeeDto> getAllEmployees() {
@@ -42,7 +46,6 @@ public class EmployeeService {
     public EmployeeDto createEmployee(CreateEmployeeRequest request) {
         log.debug("Creating new employee: {} {}", request.getFirstName(), request.getLastName());
 
-        // Check if email already exists
         if (employeeRepository.existsByEmail(request.getEmail())) {
             log.warn("Attempt to create employee with duplicate email: {}", request.getEmail());
             throw new BadRequestException("Employee with email " + request.getEmail() + " already exists");
@@ -65,7 +68,6 @@ public class EmployeeService {
         Employee existing = employeeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
 
-        // Check if email is being changed and if new email already exists
         if (!existing.getEmail().equals(request.getEmail()) &&
             employeeRepository.existsByEmail(request.getEmail())) {
             log.warn("Attempt to update employee {} with duplicate email: {}", id, request.getEmail());
@@ -93,13 +95,36 @@ public class EmployeeService {
         log.info("Employee deleted successfully with id: {}", id);
     }
 
-    // Mapper: Entity → DTO
+    @Transactional(readOnly = true)
+    public List<EmployeeScheduleDto> getEmployeeSchedule(Long employeeId) {
+        log.debug("Fetching schedule for employee with id: {}", employeeId);
+
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new ResourceNotFoundException("Employee not found with id: " + employeeId);
+        }
+
+        List<EmployeeSchedule> schedules = employeeScheduleRepository.findByEmployeeId(employeeId);
+        return schedules.stream()
+                .map(this::mapScheduleToDto)
+                .collect(Collectors.toList());
+    }
+
     private EmployeeDto mapToDto(Employee entity) {
         return new EmployeeDto(
                 entity.getId(),
                 entity.getFirstName(),
                 entity.getLastName(),
                 entity.getEmail()
+        );
+    }
+
+    private EmployeeScheduleDto mapScheduleToDto(EmployeeSchedule schedule) {
+        return new EmployeeScheduleDto(
+                schedule.getId(),
+                schedule.getDayOfWeek(),
+                schedule.getStartTime(),
+                schedule.getEndTime(),
+                schedule.getIsWorkingDay()
         );
     }
 }
