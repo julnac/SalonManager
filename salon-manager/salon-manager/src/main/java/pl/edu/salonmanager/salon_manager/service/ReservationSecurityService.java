@@ -24,7 +24,7 @@ public class ReservationSecurityService {
         }
 
         return reservation.getUser().getId().equals(user.getId())
-                && reservation.getStatus() != ReservationStatus.APPROVED
+                && reservation.getStatus() != ReservationStatus.APPROVED_BY_SALON
                 && reservation.getStatus() != ReservationStatus.CANCELLED;
     }
 
@@ -36,6 +36,7 @@ public class ReservationSecurityService {
         }
 
         return reservation.getUser().getId().equals(user.getId())
-                && reservation.getStatus() != ReservationStatus.CANCELLED;
+                && reservation.getStatus() != ReservationStatus.CANCELLED
+                && reservation.getStatus() != ReservationStatus.CONFIRMED_BY_CLIENT;
     }
 }

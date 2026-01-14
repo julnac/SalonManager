@@ -141,7 +141,7 @@ public class ReservationService {
 
         if (!securityService.canEditReservation(reservation, reservation.getUser())) {
             log.warn("Not authorized to update reservation: {}", id);
-            throw new UnauthorizedException("Not authorized to update this reservation");
+            throw new UnauthorizedException("Not authorized to update this reservation or reservation is already APPROVED_BY_SALON or CANCELLED");
         }
 
         applyReservationDetails(reservation, request, id);
@@ -157,15 +157,10 @@ public class ReservationService {
 
         Reservation reservation = getReservationById(reservationId);
 
-        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
-            log.warn("Attempt to cancel already cancelled reservation: {}", reservationId);
-            throw new BadRequestException("Reservation is already cancelled");
-        }
-
         if (!securityService.canCancelReservation(reservation, currentUser)) {
             log.warn("User {} not authorized to cancel reservation {}",
                     currentUser.getId(), reservationId);
-            throw new UnauthorizedException("Not authorized to cancel this reservation");
+            throw new UnauthorizedException("Not authorized to cancel this reservation or reservation status is already CANCELLED or CONFIRMED_BY_CLIENT");
         }
 
         reservation.setStatus(ReservationStatus.CANCELLED);
