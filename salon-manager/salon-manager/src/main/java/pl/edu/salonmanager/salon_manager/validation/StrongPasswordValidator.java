@@ -11,7 +11,6 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
             return true;
         }
 
-        // Logic: At least one uppercase letter and one special character
         boolean hasUppercase = !password.equals(password.toLowerCase());
         boolean hasSpecialChar = password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
 

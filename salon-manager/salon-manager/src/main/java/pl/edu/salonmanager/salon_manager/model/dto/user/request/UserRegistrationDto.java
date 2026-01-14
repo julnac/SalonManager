@@ -10,6 +10,4 @@ public class UserRegistrationDto {
 
     @StrongPassword
     private String password;
-
-    // Getters and Setters
 }
