@@ -26,4 +26,11 @@ public interface EmployeeSpecializationRepository extends JpaRepository<Employee
         @Param("serviceIds") List<Long> serviceIds,
         @Param("serviceCount") Long serviceCount
     );
+
+    @Query("SELECT COUNT(DISTINCT es.serviceOffer.id) FROM EmployeeSpecialization es " +
+           "WHERE es.employee.id = :employeeId AND es.serviceOffer.id IN :serviceIds")
+    long countEmployeeQualifiedServices(
+        @Param("employeeId") Long employeeId,
+        @Param("serviceIds") List<Long> serviceIds
+    );
 }

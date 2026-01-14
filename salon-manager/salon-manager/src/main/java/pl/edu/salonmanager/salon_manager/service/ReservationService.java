@@ -8,6 +8,7 @@ import pl.edu.salonmanager.salon_manager.exception.BadRequestException;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
 import pl.edu.salonmanager.salon_manager.exception.UnauthorizedException;
 import pl.edu.salonmanager.salon_manager.model.dto.reservation.request.CreateReservationRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.reservation.request.ReservationRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.reservation.request.UpdateReservationRequest;
 import pl.edu.salonmanager.salon_manager.model.entity.Employee;
 import pl.edu.salonmanager.salon_manager.model.entity.Reservation;
@@ -36,6 +37,7 @@ public class ReservationService {
     private final EmployeeRepository employeeRepository;
     private final ServiceOfferRepository serviceOfferRepository;
     private final ReservationSecurityService securityService;
+    private final AvailabilityService availabilityService;
 
     @Transactional(readOnly = true)
     public List<Reservation> getAllReservations(ReservationStatus status) {
@@ -80,29 +82,32 @@ public class ReservationService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        Long employeeId = request.getEmployeeId();
-        Employee employee = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
-
-        ReservationCalculation calculation = calculateReservationDetails(request.getServiceIds());
-        LocalDateTime endTime = request.getStartTime().plusMinutes(calculation.totalDurationMinutes());
-
-        if (reservationRepository.hasOverlappingReservation(employeeId, request.getStartTime(), endTime)) {
-            throw new BadRequestException("Employee already has a reservation at this time. Please select a different time slot.");
-        }
-
         Reservation reservation = new Reservation();
         reservation.setUser(user);
-        reservation.setEmployee(employee);
-        reservation.setStartTime(request.getStartTime());
-        reservation.setEndTime(endTime);
-        reservation.setServices(calculation.services());
-        reservation.setTotalPrice(calculation.totalPrice());
         reservation.setStatus(ReservationStatus.CREATED);
+
+        applyReservationDetails(reservation, request, null);
 
         Reservation saved = reservationRepository.save(reservation);
         log.info("Reservation created successfully with id: {}", saved.getId());
         return saved;
+    }
+
+    @Transactional
+    public Reservation approveReservation(Long id) {
+        log.debug("Approving reservation with id: {} by salon", id);
+
+        Reservation reservation = getReservationById(id);
+
+        if (reservation.getStatus() != ReservationStatus.CREATED) {
+            log.warn("Attempt to approve reservation {} in invalid status: {}", id, reservation.getStatus());
+            throw new BadRequestException("Reservation cannot be approved in current status: " + reservation.getStatus());
+        }
+
+        reservation.setStatus(ReservationStatus.APPROVED_BY_SALON);
+        Reservation updated = reservationRepository.save(reservation);
+        log.info("Reservation {} approved successfully by salon", id);
+        return updated;
     }
 
     @Transactional
@@ -116,7 +121,7 @@ public class ReservationService {
             throw new BadRequestException("Not authorized to confirm this reservation");
         }
 
-        if (reservation.getStatus() != ReservationStatus.CREATED) {
+        if (reservation.getStatus() != ReservationStatus.APPROVED_BY_SALON) {
             log.warn("Attempt to confirm reservation {} in invalid status: {}", id, reservation.getStatus());
             throw new BadRequestException("Reservation cannot be confirmed in current status: " + reservation.getStatus());
         }
@@ -127,23 +132,6 @@ public class ReservationService {
         return updated;
     }
 
-    @Transactional
-    public Reservation approveReservation(Long id) {
-        log.debug("Approving reservation with id: {}", id);
-
-        Reservation reservation = getReservationById(id);
-
-        if (reservation.getStatus() != ReservationStatus.CONFIRMED_BY_CLIENT) {
-            log.warn("Attempt to approve reservation {} in invalid status: {}", id, reservation.getStatus());
-            throw new BadRequestException("Reservation cannot be approved in current status: " + reservation.getStatus());
-        }
-
-        reservation.setStatus(ReservationStatus.APPROVED);
-        Reservation updated = reservationRepository.save(reservation);
-        log.info("Reservation {} approved successfully by admin", id);
-        return updated;
-    }
-
 
     @Transactional
     public Reservation updateReservation(Long id, UpdateReservationRequest request) {
@@ -151,33 +139,15 @@ public class ReservationService {
 
         Reservation reservation = getReservationById(id);
 
-        Employee employee = employeeRepository.findById(request.getEmployeeId())
-            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId()));
-
         if (!securityService.canEditReservation(reservation, reservation.getUser())) {
             log.warn("Not authorized to update reservation: {}", id);
             throw new UnauthorizedException("Not authorized to update this reservation");
         }
 
-        ReservationCalculation calculation = calculateReservationDetails(request.getServiceIds());
-        LocalDateTime endTime = request.getStartTime().plusMinutes(calculation.totalDurationMinutes());
-
-        if (reservationRepository.hasOverlappingReservationExcluding(
-                id,
-                request.getEmployeeId(),
-                request.getStartTime(),
-                endTime)) {
-            throw new BadRequestException("Employee already has a reservation at this time");
-        }
-
-        reservation.setEmployee(employee);
-        reservation.setStartTime(request.getStartTime());
-        reservation.setEndTime(endTime);
-        reservation.setServices(calculation.services());
-        reservation.setTotalPrice(calculation.totalPrice());
+        applyReservationDetails(reservation, request, id);
 
         Reservation updated = reservationRepository.save(reservation);
-        log.info("Reservation {} updated successfully by admin", id);
+        log.info("Reservation {} updated successfully", id);
         return updated;
     }
 
@@ -203,6 +173,44 @@ public class ReservationService {
 
         log.info("Reservation {} cancelled successfully by user {}", reservationId, currentUser.getId());
         return updated;
+    }
+
+    private void validateReservationTime(LocalDateTime startTime) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime maxFuture = now.plusMonths(3);
+
+        if (startTime.isBefore(now)) {
+            throw new BadRequestException("Cannot create reservation in the past");
+        }
+
+        if (startTime.isAfter(maxFuture)) {
+            throw new BadRequestException("Cannot create reservation more than 3 months ahead");
+        }
+    }
+
+    private void applyReservationDetails(Reservation reservation, ReservationRequest request, Long excludeReservationId) {
+        validateReservationTime(request.getStartTime());
+
+        Employee employee = employeeRepository.findById(request.getEmployeeId())
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId()));
+
+        ReservationCalculation calculation = calculateReservationDetails(request.getServiceIds());
+
+        if (!availabilityService.isSlotAvailable(
+                request.getEmployeeId(),
+                request.getStartTime(),
+                request.getServiceIds().stream().toList(),
+                excludeReservationId)) {
+            throw new BadRequestException("Selected time slot is not available");
+        }
+
+        LocalDateTime endTime = request.getStartTime().plusMinutes(calculation.totalDurationMinutes());
+
+        reservation.setEmployee(employee);
+        reservation.setStartTime(request.getStartTime());
+        reservation.setEndTime(endTime);
+        reservation.setServices(calculation.services());
+        reservation.setTotalPrice(calculation.totalPrice());
     }
 
     private record ReservationCalculation(

@@ -28,7 +28,7 @@ public class StatisticsDao {
                 COALESCE(SUM(r.total_price), 0) as total_spending
             FROM users u
             LEFT JOIN reservations r ON u.id = r.user_id
-                AND r.status IN ('APPROVED', 'CONFIRMED_BY_CLIENT')
+                AND r.status IN ('APPROVED_BY_SALON', 'CONFIRMED_BY_CLIENT')
             GROUP BY u.id, u.first_name, u.last_name, u.email
             HAVING COUNT(r.id) > 0
             ORDER BY total_spending DESC

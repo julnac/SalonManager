@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
-public class CreateReservationRequest {
+public class CreateReservationRequest implements ReservationRequest {
 
     @NotNull(message = "Start time is required")
     @Future(message = "Start time must be in the future")

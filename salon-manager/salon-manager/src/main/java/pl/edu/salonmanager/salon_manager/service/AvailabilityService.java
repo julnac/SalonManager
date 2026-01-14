@@ -13,10 +13,7 @@ import pl.edu.salonmanager.salon_manager.model.entity.Employee;
 import pl.edu.salonmanager.salon_manager.model.entity.EmployeeSchedule;
 import pl.edu.salonmanager.salon_manager.model.entity.Reservation;
 import pl.edu.salonmanager.salon_manager.model.entity.ServiceOffer;
-import pl.edu.salonmanager.salon_manager.repository.EmployeeScheduleRepository;
-import pl.edu.salonmanager.salon_manager.repository.EmployeeSpecializationRepository;
-import pl.edu.salonmanager.salon_manager.repository.ReservationRepository;
-import pl.edu.salonmanager.salon_manager.repository.ServiceOfferRepository;
+import pl.edu.salonmanager.salon_manager.repository.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -24,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +33,7 @@ public class AvailabilityService {
     private final EmployeeScheduleRepository employeeScheduleRepository;
     private final ReservationRepository reservationRepository;
     private final SalonProperties salonProperties;
+    private final EmployeeRepository employeeRepository;
 
     @Transactional(readOnly = true)
     public AvailabilityResponseDto findAvailableSlots(LocalDate date, List<Long> serviceIds) {
@@ -43,12 +42,10 @@ public class AvailabilityService {
         validateSearchRequest(date, serviceIds);
 
         int totalDurationMinutes = calculateTotalDuration(serviceIds);
-        log.debug("Total duration needed: {} minutes", totalDurationMinutes);
-
         List<Employee> qualifiedEmployees = findQualifiedEmployees(serviceIds);
-        log.debug("Found {} qualified employees", qualifiedEmployees.size());
 
         DayOfWeek dayOfWeek = date.getDayOfWeek();
+
         List<EmployeeAvailabilityDto> employeeAvailabilities = new ArrayList<>();
 
         for (Employee employee : qualifiedEmployees) {
@@ -66,6 +63,66 @@ public class AvailabilityService {
         return new AvailabilityResponseDto(date, totalDurationMinutes, employeeAvailabilities);
     }
 
+    @Transactional(readOnly = true)
+    public boolean isSlotAvailable(Long employeeId,
+                                   LocalDateTime startTime,
+                                   List<Long> serviceIds,
+                                   Long excludeReservationId) {
+        log.debug("Checking slot availability for employee {} at {} for {} services",
+                employeeId, startTime, serviceIds);
+
+        LocalDate date = startTime.toLocalDate();
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+
+        validateSearchRequest(date, serviceIds);
+
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+
+        if(!isEmployeeQualified(employeeId, serviceIds)){
+            log.debug("Employee {} is not qualified for the requested services", employeeId);
+            return false;
+        }
+
+        EmployeeSchedule schedule = employeeScheduleRepository
+                .findByEmployeeIdAndDayOfWeek(employee.getId(), dayOfWeek)
+                .orElse(null);
+
+        if (schedule == null || !schedule.getIsWorkingDay()) {
+            log.debug("Employee {} does not work on {}", employee.getId(), dayOfWeek);
+            return false;
+        }
+
+        int durationMinutes = calculateTotalDuration(serviceIds);
+        LocalTime slotStart = startTime.toLocalTime();
+        LocalTime slotEnd = slotStart.plusMinutes(durationMinutes);
+
+        if (slotStart.isBefore(schedule.getStartTime()) ||
+                slotEnd.isAfter(schedule.getEndTime())) {
+            log.debug("Slot is outside working hours");
+            return false;
+        }
+
+        LocalDateTime endTime = startTime.plusMinutes(durationMinutes);
+        boolean hasConflict;
+        if (excludeReservationId != null) {
+            hasConflict = reservationRepository.hasOverlappingReservationExcluding(
+                    excludeReservationId, employeeId, startTime, endTime);
+
+        } else {
+            hasConflict = reservationRepository.hasOverlappingReservation(
+                    employeeId, startTime, endTime);
+
+        }
+        if (hasConflict) {
+            log.debug("Slot conflicts with existing reservation");
+            return false;
+        }
+
+        log.debug("Slot is available");
+        return true;
+    }
+
     private void validateSearchRequest(LocalDate date, List<Long> serviceIds) {
         if (date == null) {
             throw new BadRequestException("Date cannot be null");
@@ -78,16 +135,15 @@ public class AvailabilityService {
         if (serviceIds == null || serviceIds.isEmpty()) {
             throw new BadRequestException("Service IDs list cannot be empty");
         }
-
-        List<ServiceOffer> services = serviceOfferRepository.findAllById(serviceIds);
-        if (services.size() != serviceIds.size()) {
-            throw new ResourceNotFoundException("One or more services not found");
-        }
     }
-
 
     private int calculateTotalDuration(List<Long> serviceIds) {
         List<ServiceOffer> services = serviceOfferRepository.findAllById(serviceIds);
+
+        if (services.size() != serviceIds.size()) {
+            throw new ResourceNotFoundException("One or more services not found");
+        }
+
         return services.stream()
             .mapToInt(ServiceOffer::getDurationMinutes)
             .sum();
@@ -98,6 +154,12 @@ public class AvailabilityService {
             serviceIds,
             (long) serviceIds.size()
         );
+    }
+
+    private boolean isEmployeeQualified(Long employeeId, List<Long> serviceIds) {
+        long qualifiedCount = employeeSpecializationRepository
+                .countEmployeeQualifiedServices(employeeId, serviceIds);
+        return qualifiedCount == serviceIds.size();
     }
 
     private EmployeeAvailabilityDto findEmployeeAvailableSlots(
