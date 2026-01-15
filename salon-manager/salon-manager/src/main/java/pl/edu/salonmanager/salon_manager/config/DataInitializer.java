@@ -27,6 +27,7 @@ public class DataInitializer implements CommandLineRunner {
 
         initializeRoles();
         initializeAdminUser();
+        initializeTestUser();
 
         log.info("Data initialization completed");
     }
@@ -65,6 +66,25 @@ public class DataInitializer implements CommandLineRunner {
 
             userRepository.save(admin);
             log.info("Created default admin user: admin@salon.pl / admin123");
+        }
+    }
+
+    private void initializeTestUser() {
+        if (!userRepository.existsByEmail("user@example.com")) {
+            Role userRole = roleRepository.findByName("USER")
+                    .orElseThrow(() -> new RuntimeException("Role USER not found"));
+
+            User testUser = User.builder()
+                    .email("user@example.com")
+                    .password(passwordEncoder.encode("haslo123"))
+                    .firstName("Jan")
+                    .lastName("Kowalski")
+                    .enabled(true)
+                    .roles(Set.of(userRole))
+                    .build();
+
+            userRepository.save(testUser);
+            log.info("Created test user: user@example.com / haslo123");
         }
     }
 }

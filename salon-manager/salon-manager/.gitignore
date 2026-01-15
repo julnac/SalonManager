@@ -1,4 +1,6 @@
 HELP.md
+DOCKER.md
+TESTING.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -33,5 +35,7 @@ build/
 .vscode/
 
 .idea/
+.idea/*
 */.idea/
 */desktop.ini
+
