@@ -2,11 +2,12 @@ package pl.edu.salonmanager.salon_manager.controller.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 import pl.edu.salonmanager.salon_manager.model.dto.user.request.UserRegistrationDto;
 import pl.edu.salonmanager.salon_manager.model.dto.user.response.UserDto;
 import pl.edu.salonmanager.salon_manager.service.UserService;
@@ -32,8 +33,9 @@ public class UserController {
 
     @PostMapping("/register")
     @Operation(summary = "Register new user (PUBLIC)", description = "Registers a new user with validation")
-    public String register(@Valid @RequestBody UserRegistrationDto dto) {
-        // Business logic is executed only if validation passes
-        return "Registration successful";
+    public ResponseEntity<UserDto> register(@Valid @RequestBody UserRegistrationDto dto) {
+        log.info("REST request to register new user: {}", dto.getEmail());
+        UserDto registeredUser = userService.registerUser(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
     }
 }

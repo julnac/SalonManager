@@ -26,11 +26,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
      """)
     boolean hasAdminRole(@Param("userId") Long userId);
 
-    // @Query przykład - JPQL z JOIN przez relację
     @Query("SELECT DISTINCT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
     List<User> findUsersByRoleName(@Param("roleName") String roleName);
 
-    // @Query przykład - Native SQL z LIKE
     @Query(value = "SELECT * FROM users u WHERE " +
            "LOWER(u.first_name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.last_name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
