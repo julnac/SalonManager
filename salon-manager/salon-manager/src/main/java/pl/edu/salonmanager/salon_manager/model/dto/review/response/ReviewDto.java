@@ -14,4 +14,5 @@ public class ReviewDto {
     private LocalDateTime createdAt;
     private Long userId;
     private String userName;
+    private String imageUrl;
 }

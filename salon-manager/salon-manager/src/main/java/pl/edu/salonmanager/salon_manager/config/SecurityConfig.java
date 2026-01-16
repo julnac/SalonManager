@@ -76,7 +76,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/reservations/*/cancel").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/reservations/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/reviews").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/*/image").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/*/image").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/*").hasRole("USER")
 
                         // Reszta wymaga uwierzytelnienia
                         .anyRequest().authenticated()

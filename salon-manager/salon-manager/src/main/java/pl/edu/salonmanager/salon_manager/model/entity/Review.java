@@ -27,6 +27,9 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "image_filename")
+    private String imageFilename;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
