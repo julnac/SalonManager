@@ -26,11 +26,9 @@ services:
       dockerfile: Dockerfile
     container_name: salon-manager-backend
     environment:
-      # Database configuration
       DATABASE_URL: jdbc:postgresql://postgres:5432/salon_db
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
-      # Spring profile
       SPRING_PROFILES_ACTIVE: prod
     ports:
       - "8080:8080"

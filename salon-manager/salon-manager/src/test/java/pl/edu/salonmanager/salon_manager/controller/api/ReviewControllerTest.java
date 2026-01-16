@@ -176,6 +176,7 @@ class ReviewControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldGetReviewImageAsPublic() throws Exception {
         // Given
         Resource mockResource = mock(Resource.class);
@@ -191,6 +192,7 @@ class ReviewControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldReturn404WhenImageNotFound() throws Exception {
         // Given
         when(reviewService.getReviewImage(1L))

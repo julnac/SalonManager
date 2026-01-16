@@ -32,6 +32,10 @@ spring:
         mode: HTML
         encoding: UTF-8
         cache: false
+    servlet:
+        multipart:
+            max-file-size: 5MB
+            max-request-size: 10MB
 server:
     port: 8080
 
@@ -72,3 +76,8 @@ springdoc:
             - name: Salon Manager API
               url: /v3/api-docs
         disable-swagger-default-url: true
+
+app:
+    upload:
+        dir: ./uploads
+        allowed-extensions: jpg,jpeg,png,gif
