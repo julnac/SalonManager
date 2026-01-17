@@ -52,32 +52,28 @@ public class ReviewController {
         return ResponseEntity.ok(review);
     }
 
-    @PostMapping
-    @Operation(summary = "Create new review (USER)", description = "Creates a new review")
-    public ResponseEntity<ReviewDto> createReview(@Valid @RequestBody CreateReviewRequest request) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Create new review (USER)", description = "Creates a new review with optional image")
+    public ResponseEntity<ReviewDto> createReview(
+            @RequestParam("content") String content,
+            @RequestParam("userId") Long userId,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
         log.info("REST request to create review");
-        ReviewDto created = reviewService.createReview(request);
+        CreateReviewRequest request = new CreateReviewRequest();
+        request.setContent(content);
+        request.setUserId(userId);
+
+        ReviewDto created = reviewService.createReview(request, image);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete review (USER, owner only)", description = "Deletes a review")
+    @Operation(summary = "Delete review (USER, owner only)", description = "Deletes a review with its image")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
         log.info("REST request to delete review: {}", id);
         Long userId = getCurrentUserId();
         reviewService.deleteReview(id, userId);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/image")
-    @Operation(summary = "Add/update image to review (USER, owner only)", description = "Adds or updates an image to a review")
-    public ResponseEntity<ReviewDto> addImageToReview(
-            @PathVariable Long id,
-            @RequestParam("image") MultipartFile image) {
-        log.info("REST request to add image to review: {}", id);
-        Long userId = getCurrentUserId();
-        ReviewDto updated = reviewService.addImageToReview(id, image, userId);
-        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/{id}/image")
@@ -101,15 +97,6 @@ public class ReviewController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                        "inline; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
-    }
-
-    @DeleteMapping("/{id}/image")
-    @Operation(summary = "Delete review image (USER, owner only)", description = "Deletes the image from a review")
-    public ResponseEntity<Void> deleteReviewImage(@PathVariable Long id) {
-        log.info("REST request to delete image from review: {}", id);
-        Long userId = getCurrentUserId();
-        reviewService.deleteReviewImage(id, userId);
-        return ResponseEntity.noContent().build();
     }
 
     private Long getCurrentUserId() {

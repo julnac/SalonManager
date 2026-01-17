@@ -5,12 +5,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.response.ServiceOfferDto;
 import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.request.CreateServiceRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.request.UpdateServiceRequest;
+import pl.edu.salonmanager.salon_manager.service.ServiceOfferCsvService;
 import pl.edu.salonmanager.salon_manager.service.ServiceOfferService;
 
 import java.util.List;
@@ -23,6 +27,7 @@ import java.util.List;
 public class ServiceOfferController {
 
     private final ServiceOfferService serviceOfferService;
+    private final ServiceOfferCsvService csvService;
 
     // GET /api/v1/services
     @GetMapping
@@ -64,6 +69,35 @@ public class ServiceOfferController {
 
         serviceOfferService.deleteService(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // GET /api/v1/services/export/csv
+    @GetMapping("/export/csv")
+    @Operation(summary = "Export services to CSV (ADMIN)", description = "Exports all service offers to CSV file")
+    public ResponseEntity<String> exportToCsv() {
+        log.info("REST request to export services to CSV");
+
+        String csv = csvService.exportToCsv();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+        headers.setContentDispositionFormData("attachment", "services.csv");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csv);
+    }
+
+    // POST /api/v1/services/import/csv
+    @PostMapping(value = "/import/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Import services from CSV (ADMIN)", description = "Imports service offers from CSV file")
+    public ResponseEntity<List<ServiceOfferDto>> importFromCsv(
+            @RequestParam("file") MultipartFile file) {
+        log.info("REST request to import services from CSV: {}", file.getOriginalFilename());
+
+        List<ServiceOfferDto> imported = csvService.importFromCsv(file);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(imported);
     }
 }
 

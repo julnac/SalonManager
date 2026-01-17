@@ -7,20 +7,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
 import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.request.CreateServiceRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.request.UpdateServiceRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.serviceOffer.response.ServiceOfferDto;
+import pl.edu.salonmanager.salon_manager.service.ServiceOfferCsvService;
 import pl.edu.salonmanager.salon_manager.service.ServiceOfferService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -37,6 +41,9 @@ class ServiceOfferControllerTest {
 
     @MockBean
     private ServiceOfferService serviceOfferService;
+
+    @MockBean
+    private ServiceOfferCsvService csvService;
 
     private ServiceOfferDto serviceDto;
     private CreateServiceRequest createRequest;
@@ -141,5 +148,79 @@ class ServiceOfferControllerTest {
         mockMvc.perform(get("/api/v1/services"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldImportServicesFromCsv() throws Exception {
+        // Given
+        String csvContent = """
+                name,price,durationMinutes
+                Massage,100.00,60
+                Facial,80.00,45
+                """;
+
+        MockMultipartFile csvFile = new MockMultipartFile(
+                "file",
+                "services.csv",
+                "text/csv",
+                csvContent.getBytes()
+        );
+
+        List<ServiceOfferDto> importedServices = Arrays.asList(
+                new ServiceOfferDto(1L, "Massage", new BigDecimal("100.00"), 60),
+                new ServiceOfferDto(2L, "Facial", new BigDecimal("80.00"), 45)
+        );
+
+        when(csvService.importFromCsv(any())).thenReturn(importedServices);
+
+        // When & Then
+        mockMvc.perform(multipart("/api/v1/services/import/csv")
+                        .file(csvFile)
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Massage"))
+                .andExpect(jsonPath("$[0].price").value(100.00))
+                .andExpect(jsonPath("$[0].durationMinutes").value(60))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].name").value("Facial"))
+                .andExpect(jsonPath("$[1].price").value(80.00))
+                .andExpect(jsonPath("$[1].durationMinutes").value(45));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldExportServicesToCsv() throws Exception {
+        // Given
+        String csvContent = """
+                name,price,durationMinutes
+                Haircut,50.00,30
+                Massage,100.00,60
+                """;
+
+        when(csvService.exportToCsv()).thenReturn(csvContent);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/services/export/csv")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "text/csv;charset=UTF-8"))
+                .andExpect(header().string("Content-Disposition", "form-data; name=\"attachment\"; filename=\"services.csv\""))
+                .andExpect(content().string(csvContent));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldExportEmptyListToCsv() throws Exception {
+        // Given
+        String csvContent = "name,price,durationMinutes\n";
+        when(csvService.exportToCsv()).thenReturn(csvContent);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/services/export/csv")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(csvContent));
     }
 }

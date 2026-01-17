@@ -59,6 +59,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/employee/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/employees/*/schedule").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/statistics/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/services/export/csv").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/services/import/csv").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/services/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/services/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/services/**").hasRole("ADMIN")
@@ -76,8 +78,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/reservations/*/cancel").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/reservations/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/reviews").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/*/image").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/*/image").hasRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/*").hasRole("USER")
 
                         // Reszta wymaga uwierzytelnienia

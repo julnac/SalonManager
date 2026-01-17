@@ -96,19 +96,47 @@ class ReviewControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    void shouldCreateReview() throws Exception {
+    void shouldCreateReviewWithoutImage() throws Exception {
         // Given
         ReviewDto created = new ReviewDto(2L, "Great experience!", LocalDateTime.now(), 1L, "Jan Kowalski", null);
-        when(reviewService.createReview(any(CreateReviewRequest.class))).thenReturn(created);
+        when(reviewService.createReview(any(CreateReviewRequest.class), eq(null))).thenReturn(created);
 
         // When & Then
-        mockMvc.perform(post("/api/v1/reviews")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest)))
+        mockMvc.perform(multipart("/api/v1/reviews")
+                        .param("content", "Great experience!")
+                        .param("userId", "1")
+                        .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(2))
-                .andExpect(jsonPath("$.content").value("Great experience!"));
+                .andExpect(jsonPath("$.content").value("Great experience!"))
+                .andExpect(jsonPath("$.imageUrl").doesNotExist());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldCreateReviewWithImage() throws Exception {
+        // Given
+        MockMultipartFile mockImage = new MockMultipartFile(
+            "image",
+            "photo.jpg",
+            "image/jpeg",
+            "fake image content".getBytes()
+        );
+
+        ReviewDto created = new ReviewDto(2L, "Great experience!", LocalDateTime.now(), 1L, "Jan Kowalski",
+                                         "/api/v1/reviews/2/image");
+        when(reviewService.createReview(any(CreateReviewRequest.class), any())).thenReturn(created);
+
+        // When & Then
+        mockMvc.perform(multipart("/api/v1/reviews")
+                        .file(mockImage)
+                        .param("content", "Great experience!")
+                        .param("userId", "1")
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.content").value("Great experience!"))
+                .andExpect(jsonPath("$.imageUrl").value("/api/v1/reviews/2/image"));
     }
 
     @Test
@@ -148,32 +176,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$").isEmpty());
     }
 
-    // ========== Image upload/download/delete Tests ==========
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldAddImageToReview() throws Exception {
-        // Given
-        MockMultipartFile mockImage = new MockMultipartFile(
-            "image",
-            "photo.jpg",
-            "image/jpeg",
-            "fake image content".getBytes()
-        );
-
-        ReviewDto updated = new ReviewDto(1L, "Great!", LocalDateTime.now(), 1L, "Jan Kowalski",
-                                         "/api/v1/reviews/1/image");
-
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(mockUser));
-        when(reviewService.addImageToReview(eq(1L), any(), eq(1L))).thenReturn(updated);
-
-        // When & Then
-        mockMvc.perform(multipart("/api/v1/reviews/1/image")
-                        .file(mockImage)
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imageUrl").value("/api/v1/reviews/1/image"));
-    }
+    // ========== Image download Tests ==========
 
     @Test
     @WithMockUser
@@ -203,31 +206,4 @@ class ReviewControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldDeleteReviewImage() throws Exception {
-        // Given
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(mockUser));
-
-        // When & Then
-        mockMvc.perform(delete("/api/v1/reviews/1/image")
-                        .with(csrf()))
-                .andExpect(status().isNoContent());
-
-        verify(reviewService).deleteReviewImage(1L, 1L);
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturn401WhenDeletingOthersReviewImage() throws Exception {
-        // Given
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(mockUser));
-        doThrow(new UnauthorizedException("You can only delete images from your own reviews"))
-            .when(reviewService).deleteReviewImage(1L, 1L);
-
-        // When & Then
-        mockMvc.perform(delete("/api/v1/reviews/1/image")
-                        .with(csrf()))
-                .andExpect(status().isUnauthorized());
-    }
 }

@@ -49,7 +49,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewDto createReview(CreateReviewRequest request) {
+    public ReviewDto createReview(CreateReviewRequest request, MultipartFile image) {
         log.debug("Creating new review for user id: {}", request.getUserId());
 
         User user = userRepository.findById(request.getUserId())
@@ -61,6 +61,26 @@ public class ReviewService {
 
         Review saved = reviewRepository.save(review);
         log.info("Review created successfully with id: {}", saved.getId());
+
+        if (image != null && !image.isEmpty()) {
+            String contentType = image.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new BadRequestException("File must be an image");
+            }
+
+            List<String> allowedMimeTypes = Arrays.asList(
+                "image/jpeg", "image/jpg", "image/png", "image/gif"
+            );
+            if (!allowedMimeTypes.contains(contentType.toLowerCase())) {
+                throw new BadRequestException("Allowed image types: JPEG, PNG, GIF");
+            }
+
+            String filename = fileStorageService.storeFile(image, "review_" + saved.getId());
+            saved.setImageFilename(filename);
+            saved = reviewRepository.save(saved);
+            log.info("Image added to review {} with filename: {}", saved.getId(), filename);
+        }
+
         return mapToDto(saved);
     }
 
@@ -88,46 +108,6 @@ public class ReviewService {
         log.info("Review deleted successfully with id: {}", id);
     }
 
-    @Transactional
-    public ReviewDto addImageToReview(Long reviewId, MultipartFile image, Long currentUserId) {
-        log.debug("Adding image to review {} by user {}", reviewId, currentUserId);
-
-        Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId));
-
-        if (!review.getUser().getId().equals(currentUserId)) {
-            throw new UnauthorizedException("You can only add images to your own reviews");
-        }
-
-        String contentType = image.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new BadRequestException("File must be an image");
-        }
-
-        List<String> allowedMimeTypes = Arrays.asList(
-            "image/jpeg", "image/jpg", "image/png", "image/gif"
-        );
-        if (!allowedMimeTypes.contains(contentType.toLowerCase())) {
-            throw new BadRequestException("Allowed image types: JPEG, PNG, GIF");
-        }
-
-        if (review.getImageFilename() != null) {
-            try {
-                fileStorageService.deleteFile(review.getImageFilename());
-                log.info("Deleted old image: {}", review.getImageFilename());
-            } catch (Exception e) {
-                log.warn("Failed to delete old image: {}", review.getImageFilename(), e);
-            }
-        }
-
-        String filename = fileStorageService.storeFile(image, "review_" + reviewId);
-
-        review.setImageFilename(filename);
-        Review saved = reviewRepository.save(review);
-
-        log.info("Image added to review {} with filename: {}", reviewId, filename);
-        return mapToDto(saved);
-    }
 
     @Transactional(readOnly = true)
     public Resource getReviewImage(Long reviewId) {
@@ -154,29 +134,6 @@ public class ReviewService {
         }
     }
 
-    @Transactional
-    public void deleteReviewImage(Long reviewId, Long currentUserId) {
-        log.debug("Deleting image from review {} by user {}", reviewId, currentUserId);
-
-        Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId));
-
-        if (!review.getUser().getId().equals(currentUserId)) {
-            throw new UnauthorizedException("You can only delete images from your own reviews");
-        }
-
-        if (review.getImageFilename() == null) {
-            throw new BadRequestException("Review does not have an image");
-        }
-
-        String filename = review.getImageFilename();
-        fileStorageService.deleteFile(filename);
-
-        review.setImageFilename(null);
-        reviewRepository.save(review);
-
-        log.info("Image deleted from review {}: {}", reviewId, filename);
-    }
 
     private ReviewDto mapToDto(Review entity) {
         String imageUrl = null;

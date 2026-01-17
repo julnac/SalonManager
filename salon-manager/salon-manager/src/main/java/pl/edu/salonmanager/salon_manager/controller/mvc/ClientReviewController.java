@@ -54,7 +54,7 @@ public class ClientReviewController {
             request.setContent(form.getContent());
             request.setUserId(userId);
 
-            reviewService.createReview(request);
+            reviewService.createReview(request, null);
 
             redirectAttributes.addFlashAttribute("successMessage", "Dziękujemy za dodanie opinii!");
             return "redirect:/reviews";
