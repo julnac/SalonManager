@@ -26,10 +26,17 @@ WORKDIR /app
 
 # Utwórz użytkownika non-root dla bezpieczeństwa
 RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+
+# Utwórz katalog uploads z odpowiednimi uprawnieniami
+RUN mkdir -p /app/uploads && chown -R spring:spring /app/uploads
 
 # Kopiuj zbudowany JAR z poprzedniego stage'a
 COPY --from=builder /app/target/*.jar app.jar
+
+# Ustaw właściciela plików
+RUN chown spring:spring /app/app.jar
+
+USER spring:spring
 
 # Eksponuj port
 EXPOSE 8080

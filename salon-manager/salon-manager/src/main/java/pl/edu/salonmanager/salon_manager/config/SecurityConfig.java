@@ -44,6 +44,9 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
 
                 .authorizeHttpRequests(auth -> auth
+                        // Publiczne endpoints - autentykacja
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
+
                         // Publiczne GET endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/services/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/employees/**").permitAll()
