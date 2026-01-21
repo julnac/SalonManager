@@ -106,6 +106,11 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.APPROVED_BY_SALON);
         Reservation updated = reservationRepository.save(reservation);
+
+        // Force initialization of lazy-loaded relationships
+        updated.getUser().getEmail();
+        updated.getEmployee().getFirstName();
+
         log.info("Reservation {} approved successfully by salon", id);
         return updated;
     }
@@ -128,6 +133,11 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CONFIRMED_BY_CLIENT);
         Reservation updated = reservationRepository.save(reservation);
+
+        // Force initialization of lazy-loaded relationships
+        updated.getUser().getEmail();
+        updated.getEmployee().getFirstName();
+
         log.info("Reservation {} confirmed successfully by client", id);
         return updated;
     }
@@ -165,6 +175,10 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
         Reservation updated = reservationRepository.save(reservation);
+
+        // Force initialization of lazy-loaded relationships
+        updated.getUser().getEmail();
+        updated.getEmployee().getFirstName();
 
         log.info("Reservation {} cancelled successfully by user {}", reservationId, currentUser.getId());
         return updated;
