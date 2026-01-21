@@ -24,7 +24,7 @@ public class ServiceOfferCsvService {
     private final ServiceOfferRepository serviceOfferRepository;
     private final ServiceOfferService serviceOfferService;
 
-    private static final String CSV_HEADER = "name,price,durationMinutes"; // "name,price,durationMinutes"
+    private static final String CSV_HEADER = "name,price,durationMinutes";
     private static final String CSV_DELIMITER = ",";
 
 

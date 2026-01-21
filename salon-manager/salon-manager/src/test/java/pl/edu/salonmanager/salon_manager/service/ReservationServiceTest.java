@@ -162,7 +162,7 @@ class ReservationServiceTest {
     @Test
     void shouldConfirmReservationSuccessfully() {
         testReservation.setStatus(ReservationStatus.APPROVED_BY_SALON);
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
         when(reservationRepository.save(any(Reservation.class))).thenReturn(testReservation);
 
         Reservation result = reservationService.confirmReservation(1L, 1L);
@@ -173,7 +173,7 @@ class ReservationServiceTest {
 
     @Test
     void shouldThrowExceptionWhenConfirmingOtherUsersReservation() {
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
 
         assertThatThrownBy(() -> reservationService.confirmReservation(1L, 999L))
                 .isInstanceOf(BadRequestException.class)
@@ -185,7 +185,7 @@ class ReservationServiceTest {
     @Test
     void shouldThrowExceptionWhenConfirmingAlreadyConfirmedReservation() {
         testReservation.setStatus(ReservationStatus.CONFIRMED_BY_CLIENT);
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
 
         assertThatThrownBy(() -> reservationService.confirmReservation(1L, 1L))
                 .isInstanceOf(BadRequestException.class)
@@ -197,7 +197,7 @@ class ReservationServiceTest {
     @Test
     void shouldApproveReservationSuccessfully() {
         testReservation.setStatus(ReservationStatus.CREATED);
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
         when(reservationRepository.save(any(Reservation.class))).thenReturn(testReservation);
 
         Reservation result = reservationService.approveReservation(1L);
@@ -208,7 +208,7 @@ class ReservationServiceTest {
 
     @Test
     void shouldCancelReservationSuccessfully() {
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
         when(securityService.canCancelReservation(any(), any())).thenReturn(true);
         when(reservationRepository.save(any(Reservation.class))).thenReturn(testReservation);
 
@@ -222,7 +222,7 @@ class ReservationServiceTest {
     @Test
     void shouldThrowExceptionWhenCancellingAlreadyCancelledReservation() {
         testReservation.setStatus(ReservationStatus.CANCELLED);
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
         when(securityService.canCancelReservation(any(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> reservationService.cancelReservation(1L, testUser))
@@ -239,7 +239,7 @@ class ReservationServiceTest {
         request.setEmployeeId(1L);
         request.setServiceIds(Set.of(1L));
 
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
         when(securityService.canEditReservation(any(), any())).thenReturn(true);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(serviceOfferRepository.findById(1L)).thenReturn(Optional.of(testService));
@@ -257,7 +257,7 @@ class ReservationServiceTest {
     @Test
     void shouldNotAllowUserToCancelConfirmedReservation() {
         testReservation.setStatus(ReservationStatus.CONFIRMED_BY_CLIENT);
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
         when(securityService.canCancelReservation(any(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> reservationService.cancelReservation(1L, testUser))

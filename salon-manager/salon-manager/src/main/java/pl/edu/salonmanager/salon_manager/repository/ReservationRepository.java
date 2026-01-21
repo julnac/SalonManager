@@ -15,9 +15,16 @@ import pl.edu.salonmanager.salon_manager.model.enums.ReservationStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+
+    @Query("SELECT r FROM Reservation r " +
+           "JOIN FETCH r.user " +
+           "JOIN FETCH r.employee " +
+           "WHERE r.id = :id")
+    Optional<Reservation> findByIdWithUserAndEmployee(@Param("id") Long id);
 
     List<Reservation> findByUserId(Long userId);
     List<Reservation> findByStatus(ReservationStatus status);

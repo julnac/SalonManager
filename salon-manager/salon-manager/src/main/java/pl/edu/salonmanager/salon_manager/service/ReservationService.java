@@ -97,7 +97,8 @@ public class ReservationService {
     public Reservation approveReservation(Long id) {
         log.debug("Approving reservation with id: {} by salon", id);
 
-        Reservation reservation = getReservationById(id);
+        Reservation reservation = reservationRepository.findByIdWithUserAndEmployee(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
 
         if (reservation.getStatus() != ReservationStatus.CREATED) {
             log.warn("Attempt to approve reservation {} in invalid status: {}", id, reservation.getStatus());
@@ -107,10 +108,6 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.APPROVED_BY_SALON);
         Reservation updated = reservationRepository.save(reservation);
 
-        // Force initialization of lazy-loaded relationships
-        updated.getUser().getEmail();
-        updated.getEmployee().getFirstName();
-
         log.info("Reservation {} approved successfully by salon", id);
         return updated;
     }
@@ -119,7 +116,8 @@ public class ReservationService {
     public Reservation confirmReservation(Long id, Long userId) {
         log.debug("Confirming reservation with id: {} by user id: {}", id, userId);
 
-        Reservation reservation = getReservationById(id);
+        Reservation reservation = reservationRepository.findByIdWithUserAndEmployee(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
 
         if (!reservation.getUser().getId().equals(userId)) {
             log.warn("User {} attempted to confirm reservation {} that doesn't belong to them", userId, id);
@@ -134,10 +132,6 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CONFIRMED_BY_CLIENT);
         Reservation updated = reservationRepository.save(reservation);
 
-        // Force initialization of lazy-loaded relationships
-        updated.getUser().getEmail();
-        updated.getEmployee().getFirstName();
-
         log.info("Reservation {} confirmed successfully by client", id);
         return updated;
     }
@@ -147,7 +141,8 @@ public class ReservationService {
     public Reservation updateReservation(Long id, UpdateReservationRequest request) {
         log.debug("Updating reservation with id: {}", id);
 
-        Reservation reservation = getReservationById(id);
+        Reservation reservation = reservationRepository.findByIdWithUserAndEmployee(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
 
         if (!securityService.canEditReservation(reservation, reservation.getUser())) {
             log.warn("Not authorized to update reservation: {}", id);
@@ -165,7 +160,8 @@ public class ReservationService {
     public Reservation cancelReservation(Long reservationId, User currentUser) {
         log.debug("Cancelling reservation {} by user {}", reservationId, currentUser.getId());
 
-        Reservation reservation = getReservationById(reservationId);
+        Reservation reservation = reservationRepository.findByIdWithUserAndEmployee(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + reservationId));
 
         if (!securityService.canCancelReservation(reservation, currentUser)) {
             log.warn("User {} not authorized to cancel reservation {}",
@@ -175,10 +171,6 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
         Reservation updated = reservationRepository.save(reservation);
-
-        // Force initialization of lazy-loaded relationships
-        updated.getUser().getEmail();
-        updated.getEmployee().getFirstName();
 
         log.info("Reservation {} cancelled successfully by user {}", reservationId, currentUser.getId());
         return updated;
