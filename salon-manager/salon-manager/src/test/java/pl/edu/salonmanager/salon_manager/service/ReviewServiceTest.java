@@ -3,6 +3,7 @@ package pl.edu.salonmanager.salon_manager.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +19,8 @@ import pl.edu.salonmanager.salon_manager.model.entity.User;
 import pl.edu.salonmanager.salon_manager.repository.ReviewRepository;
 import pl.edu.salonmanager.salon_manager.repository.UserRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -34,6 +37,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
+
+    @TempDir
+    Path tempDir;
 
     @Mock
     private ReviewRepository reviewRepository;
@@ -516,6 +522,59 @@ class ReviewServiceTest {
         assertThat(result.getImageUrl()).isEqualTo("/api/v1/reviews/3/image");
         verify(fileStorageService).storeFile(mockFile, "review_3");
         verify(reviewRepository, times(2)).save(any(Review.class));
+    }
+
+    @Test
+    void shouldReturnResourceWhenFileExistsAndIsReadable() throws IOException {
+        // Given
+        String filename = "test-image.jpg";
+        Path imagePath = tempDir.resolve(filename);
+        Files.createFile(imagePath); // Tworzymy fizyczny plik w tempDir
+
+        review1.setImageFilename(filename);
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review1));
+        when(fileStorageService.loadFile(filename)).thenReturn(imagePath);
+
+        // When
+        Resource result = reviewService.getReviewImage(1L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.exists()).isTrue();
+        assertThat(result.isReadable()).isTrue();
+        verify(fileStorageService).loadFile(filename);
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundWhenFileDoesNotExistOnDisk() {
+        // Given
+        String filename = "non-existent.jpg";
+        Path nonExistentPath = tempDir.resolve(filename); // Ścieżka poprawna, ale pliku nie ma
+
+        review1.setImageFilename(filename);
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review1));
+        when(fileStorageService.loadFile(filename)).thenReturn(nonExistentPath);
+
+        // When & Then
+        assertThatThrownBy(() -> reviewService.getReviewImage(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Image file not found or not readable");
+    }
+
+    @Test
+    void shouldThrowRuntimeExceptionWhenUrlIsMalformed() {
+        // Given
+        review1.setImageFilename("invalid-file");
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review1));
+
+        Path mockPath = mock(Path.class);
+        when(fileStorageService.loadFile(anyString())).thenReturn(mockPath);
+        // Path.toUri() może rzucić błędem przy nieprawidłowych znakach w specyficznych systemach
+        when(mockPath.toUri()).thenThrow(new IllegalArgumentException("Invalid path"));
+
+        // When & Then
+        assertThatThrownBy(() -> reviewService.getReviewImage(1L))
+                .isInstanceOf(RuntimeException.class);
     }
 
 }

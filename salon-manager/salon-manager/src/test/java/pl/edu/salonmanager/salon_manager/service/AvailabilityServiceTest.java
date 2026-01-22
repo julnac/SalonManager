@@ -405,4 +405,124 @@ class AvailabilityServiceTest {
         verify(serviceOfferRepository).findAllById(serviceIds);
         verify(employeeSpecializationRepository).findEmployeesWithAllServices(serviceIds, 2L);
     }
+
+    @Test
+    void shouldReturnFalseWhenExactOverlapExists() {
+        // Given
+        LocalTime startTImeValue = LocalTime.of(10, 0);
+        LocalDateTime startTime = LocalDateTime.of(testDate, startTImeValue);
+        List<Long> serviceIds = Arrays.asList(1L);
+
+        // Konfiguracja pod wyliczenie czasu (service1 ma 30 min)
+        when(serviceOfferRepository.findAllById(serviceIds)).thenReturn(Arrays.asList(service1));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(employeeSpecializationRepository.countEmployeeQualifiedServices(1L, serviceIds)).thenReturn(1L);
+        when(employeeScheduleRepository.findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek()))
+                .thenReturn(Optional.of(schedule));
+
+        when(reservationRepository.hasOverlappingReservation(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+        // When
+        boolean result = availabilityService.isSlotAvailable(1L, startTime, serviceIds, null);
+
+        // Then
+        assertThat(result).isFalse();
+        verify(reservationRepository).hasOverlappingReservation(eq(1L), eq(startTime), eq(startTime.plusMinutes(30)));
+    }
+
+    @Test
+    void shouldReturnTrueWhenSlotsAreTouchingAtEdges() {
+        // Given
+        LocalTime startTimeValue = LocalTime.of(10, 0);
+        LocalDateTime startTime = LocalDateTime.of(testDate, startTimeValue);
+        List<Long> serviceIds = Arrays.asList(1L); // 30 min
+
+        when(serviceOfferRepository.findAllById(serviceIds)).thenReturn(Arrays.asList(service1));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(employeeSpecializationRepository.countEmployeeQualifiedServices(1L, serviceIds)).thenReturn(1L);
+        when(employeeScheduleRepository.findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek()))
+                .thenReturn(Optional.of(schedule));
+
+        when(reservationRepository.hasOverlappingReservation(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+        // When
+        boolean result = availabilityService.isSlotAvailable(1L, startTime, serviceIds, null);
+
+        // Then
+        assertThat(result).isTrue();
+        verify(reservationRepository).hasOverlappingReservation(eq(1L), eq(startTime), eq(startTime.plusMinutes(30)));
+    }
+
+    @Test
+    void shouldReturnNullWhenNoAvailableSlotsFound() {
+        // Given
+        List<Long> serviceIds = Arrays.asList(2L); // service2 trwa 60 min
+        when(serviceOfferRepository.findAllById(serviceIds))
+                .thenReturn(Arrays.asList(service2));
+        when(employeeSpecializationRepository.findEmployeesWithAllServices(serviceIds, 1L))
+                .thenReturn(Arrays.asList(employee));
+        when(employeeScheduleRepository.findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek()))
+                .thenReturn(Optional.of(schedule));
+
+        when(salonProperties.getSlotDurationMinutes()).thenReturn(30);
+
+        // Tworzymy rezerwację, która pokrywa CAŁY dzień pracy pracownika (9:00 - 17:00)
+        Reservation blockingReservation = new Reservation();
+        blockingReservation.setStartTime(LocalDateTime.of(testDate, LocalTime.of(9, 0)));
+        blockingReservation.setEndTime(LocalDateTime.of(testDate, LocalTime.of(17, 0)));
+
+        when(reservationRepository.findActiveReservationsByEmployeeAndDate(1L, testDate))
+                .thenReturn(Arrays.asList(blockingReservation));
+
+        // When
+        AvailabilityResponseDto result = availabilityService.findAvailableSlots(testDate, serviceIds);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getEmployees()).isEmpty();
+
+        verify(reservationRepository).findActiveReservationsByEmployeeAndDate(1L, testDate);
+    }
+
+    @Test
+    void shouldReturnFalseWhenSlotOverlapsWithOneOfManyReservations() {
+        // Given
+        List<Long> serviceIds = Arrays.asList(1L); // duration 30 min
+        when(serviceOfferRepository.findAllById(serviceIds)).thenReturn(Arrays.asList(service1));
+        when(employeeSpecializationRepository.findEmployeesWithAllServices(serviceIds, 1L))
+                .thenReturn(Arrays.asList(employee));
+        when(employeeScheduleRepository.findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek()))
+                .thenReturn(Optional.of(schedule));
+        when(salonProperties.getSlotDurationMinutes()).thenReturn(30);
+
+        // Tworzymy dwie rezerwacje:
+        // 1. 09:00 - 09:30 (nie koliduje z naszym testowym slotem o 10:00)
+        Reservation res1 = new Reservation();
+        res1.setStartTime(LocalDateTime.of(testDate, LocalTime.of(9, 0)));
+        res1.setEndTime(LocalDateTime.of(testDate, LocalTime.of(9, 30)));
+
+        // 2. 10:00 - 10:30 (KOLIDUJE z naszym testowym slotem o 10:00)
+        Reservation res2 = new Reservation();
+        res2.setStartTime(LocalDateTime.of(testDate, LocalTime.of(10, 0)));
+        res2.setEndTime(LocalDateTime.of(testDate, LocalTime.of(10, 30)));
+
+        when(reservationRepository.findActiveReservationsByEmployeeAndDate(1L, testDate))
+                .thenReturn(Arrays.asList(res1, res2));
+
+        // When
+        AvailabilityResponseDto result = availabilityService.findAvailableSlots(testDate, serviceIds);
+
+        // Then
+        // Pobieramy listę slotów dla Johna Doe
+        List<LocalTime> availableSlots = result.getEmployees().get(0).getAvailableSlots();
+
+        // Sprawdzamy, czy slot 10:00 został wykluczony (przez res2)
+        // a slot 09:30 jest dostępny (bo res1 kończy się o 09:30 i nie ma overlapu)
+        assertThat(availableSlots).doesNotContain(LocalTime.of(10, 0));
+        assertThat(availableSlots).contains(LocalTime.of(9, 30));
+
+        verify(reservationRepository).findActiveReservationsByEmployeeAndDate(1L, testDate);
+    }
 }
