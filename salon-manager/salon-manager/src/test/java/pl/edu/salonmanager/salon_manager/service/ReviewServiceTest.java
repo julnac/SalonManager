@@ -31,8 +31,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -106,6 +104,7 @@ class ReviewServiceTest {
 
         // Then
         assertThat(result).isEmpty();
+        verify(reviewRepository).findAllByOrderByCreatedAtDesc();
     }
 
     // ========== getReviewById Tests ==========
@@ -123,6 +122,7 @@ class ReviewServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getContent()).isEqualTo("Excellent service!");
         assertThat(result.getUserName()).isEqualTo("Jan Kowalski");
+        verify(reviewRepository).findById(1L);
     }
 
     @Test
@@ -134,6 +134,7 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.getReviewById(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Review not found");
+        verify(reviewRepository).findById(1L);
     }
 
     // ========== createReview Tests ==========
@@ -203,6 +204,8 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.createReview(createRequest, null))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User not found");
+        verify(userRepository).findById(1L);
+        verify(reviewRepository, never()).save(any(Review.class));
     }
 
     @Test
@@ -224,6 +227,9 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.createReview(createRequest, mockFile))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("File must be an image");
+        verify(userRepository).findById(1L);
+        verify(reviewRepository).save(any(Review.class));
+        verify(fileStorageService, never()).storeFile(any(), anyString());
     }
 
     // ========== deleteReview Tests ==========
@@ -250,6 +256,8 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.deleteReview(1L, 1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Review not found");
+        verify(reviewRepository).findById(1L);
+        verify(reviewRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -262,6 +270,8 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.deleteReview(1L, 999L))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessageContaining("your own reviews");
+        verify(reviewRepository).findById(1L);
+        verify(reviewRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -307,6 +317,205 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.getReviewImage(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("does not have an image");
+        verify(reviewRepository).findById(1L);
+        verify(fileStorageService, never()).loadFile(anyString());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenReviewNotFoundForImage() {
+        // Given
+        when(reviewRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reviewService.getReviewImage(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Review not found");
+        verify(reviewRepository).findById(999L);
+        verify(fileStorageService, never()).loadFile(anyString());
+    }
+
+    @Test
+    void shouldSkipEmptyImageFile() {
+        // Given
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(true);
+
+        Review savedReview = new Review();
+        savedReview.setId(3L);
+        savedReview.setUser(testUser);
+        savedReview.setContent("Great experience!");
+        savedReview.setCreatedAt(LocalDateTime.now());
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+
+        // When
+        ReviewDto result = reviewService.createReview(createRequest, mockFile);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getImageUrl()).isNull();
+        verify(userRepository).findById(1L);
+        verify(reviewRepository).save(any(Review.class));
+        verify(fileStorageService, never()).storeFile(any(), anyString());
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenImageMimeTypeNotAllowed() {
+        // Given
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getContentType()).thenReturn("image/svg+xml"); // starts with "image/" but not in allowed list
+
+        Review savedReview = new Review();
+        savedReview.setId(3L);
+        savedReview.setUser(testUser);
+        savedReview.setContent("Great experience!");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+
+        // When & Then
+        assertThatThrownBy(() -> reviewService.createReview(createRequest, mockFile))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Allowed image types: JPEG, PNG, GIF");
+        verify(userRepository).findById(1L);
+        verify(reviewRepository).save(any(Review.class));
+        verify(fileStorageService, never()).storeFile(any(), anyString());
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenContentTypeIsNull() {
+        // Given
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getContentType()).thenReturn(null);
+
+        Review savedReview = new Review();
+        savedReview.setId(3L);
+        savedReview.setUser(testUser);
+        savedReview.setContent("Great experience!");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+
+        // When & Then
+        assertThatThrownBy(() -> reviewService.createReview(createRequest, mockFile))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("File must be an image");
+        verify(userRepository).findById(1L);
+        verify(reviewRepository).save(any(Review.class));
+    }
+
+    @Test
+    void shouldDeleteReviewAndLogWarningWhenFileDeleteFails() {
+        // Given
+        review1.setImageFilename("review_1_abc.jpg");
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review1));
+        doThrow(new RuntimeException("File delete failed")).when(fileStorageService).deleteFile("review_1_abc.jpg");
+
+        // When
+        reviewService.deleteReview(1L, 1L);
+
+        // Then - should still delete the review even if file deletion fails
+        verify(fileStorageService).deleteFile("review_1_abc.jpg");
+        verify(reviewRepository).deleteById(1L);
+    }
+
+    @Test
+    void shouldMapReviewWithImageToDto() {
+        // Given
+        review1.setImageFilename("test_image.jpg");
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review1));
+
+        // When
+        ReviewDto result = reviewService.getReviewById(1L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getImageUrl()).isEqualTo("/api/v1/reviews/1/image");
+        verify(reviewRepository).findById(1L);
+    }
+
+    @Test
+    void shouldAcceptJpgMimeType() {
+        // Given
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getContentType()).thenReturn("image/jpg");
+
+        Review savedReview = new Review();
+        savedReview.setId(3L);
+        savedReview.setUser(testUser);
+        savedReview.setContent("Great experience!");
+        savedReview.setCreatedAt(LocalDateTime.now());
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+        when(fileStorageService.storeFile(mockFile, "review_3")).thenReturn("review_3_abc.jpg");
+
+        // When
+        ReviewDto result = reviewService.createReview(createRequest, mockFile);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getImageUrl()).isEqualTo("/api/v1/reviews/3/image");
+        verify(fileStorageService).storeFile(mockFile, "review_3");
+        verify(reviewRepository, times(2)).save(any(Review.class));
+    }
+
+    @Test
+    void shouldAcceptPngMimeType() {
+        // Given
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getContentType()).thenReturn("image/png");
+
+        Review savedReview = new Review();
+        savedReview.setId(3L);
+        savedReview.setUser(testUser);
+        savedReview.setContent("Great experience!");
+        savedReview.setCreatedAt(LocalDateTime.now());
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+        when(fileStorageService.storeFile(mockFile, "review_3")).thenReturn("review_3_abc.png");
+
+        // When
+        ReviewDto result = reviewService.createReview(createRequest, mockFile);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getImageUrl()).isEqualTo("/api/v1/reviews/3/image");
+        verify(fileStorageService).storeFile(mockFile, "review_3");
+        verify(reviewRepository, times(2)).save(any(Review.class));
+    }
+
+    @Test
+    void shouldAcceptGifMimeType() {
+        // Given
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getContentType()).thenReturn("image/gif");
+
+        Review savedReview = new Review();
+        savedReview.setId(3L);
+        savedReview.setUser(testUser);
+        savedReview.setContent("Great experience!");
+        savedReview.setCreatedAt(LocalDateTime.now());
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+        when(fileStorageService.storeFile(mockFile, "review_3")).thenReturn("review_3_abc.gif");
+
+        // When
+        ReviewDto result = reviewService.createReview(createRequest, mockFile);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getImageUrl()).isEqualTo("/api/v1/reviews/3/image");
+        verify(fileStorageService).storeFile(mockFile, "review_3");
+        verify(reviewRepository, times(2)).save(any(Review.class));
     }
 
 }

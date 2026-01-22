@@ -12,7 +12,7 @@ import pl.edu.salonmanager.salon_manager.model.enums.ReservationStatus;
 import pl.edu.salonmanager.salon_manager.repository.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReservationSecurityServiceTest {
@@ -55,6 +55,7 @@ class ReservationSecurityServiceTest {
         boolean result = reservationSecurityService.canEditReservation(reservation, adminUser);
 
         assertThat(result).isTrue();
+        verify(userRepository).hasAdminRole(1L);
     }
 
     @Test
@@ -65,6 +66,7 @@ class ReservationSecurityServiceTest {
         boolean result = reservationSecurityService.canEditReservation(reservation, regularUser);
 
         assertThat(result).isTrue();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -75,6 +77,7 @@ class ReservationSecurityServiceTest {
         boolean result = reservationSecurityService.canEditReservation(reservation, regularUser);
 
         assertThat(result).isFalse();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -88,6 +91,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -101,6 +105,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(userRepository).hasAdminRole(3L);
     }
 
     // ========== canCancelReservation Tests ==========
@@ -115,6 +120,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isTrue();
+        verify(userRepository).hasAdminRole(1L);
     }
 
     @Test
@@ -128,6 +134,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isTrue();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -141,6 +148,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isTrue();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -154,6 +162,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -167,6 +176,7 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(userRepository).hasAdminRole(2L);
     }
 
     @Test
@@ -180,5 +190,6 @@ class ReservationSecurityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(userRepository).hasAdminRole(3L);
     }
 }

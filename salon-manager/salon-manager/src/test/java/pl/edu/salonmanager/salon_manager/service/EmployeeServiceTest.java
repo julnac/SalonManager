@@ -95,6 +95,7 @@ class EmployeeServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getFirstName()).isEqualTo("John");
         assertThat(result.get(1).getFirstName()).isEqualTo("Jane");
+        verify(employeeRepository).findAll();
     }
 
     @Test
@@ -107,6 +108,7 @@ class EmployeeServiceTest {
 
         // Then
         assertThat(result).isEmpty();
+        verify(employeeRepository).findAll();
     }
 
     // ========== getEmployeeById Tests ==========
@@ -125,6 +127,7 @@ class EmployeeServiceTest {
         assertThat(result.getFirstName()).isEqualTo("John");
         assertThat(result.getLastName()).isEqualTo("Doe");
         assertThat(result.getEmail()).isEqualTo("john@salon.pl");
+        verify(employeeRepository).findById(1L);
     }
 
     @Test
@@ -136,6 +139,7 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.getEmployeeById(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found");
+        verify(employeeRepository).findById(1L);
     }
 
     // ========== createEmployee Tests ==========
@@ -175,6 +179,7 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.createEmployee(createRequest))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Employee with email anna@salon.pl already exists");
+        verify(employeeRepository).existsByEmail("anna@salon.pl");
     }
 
     // ========== updateEmployee Tests ==========
@@ -238,6 +243,7 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.updateEmployee(1L, updateRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found");
+        verify(employeeRepository).findById(1L);
     }
 
     @Test
@@ -250,6 +256,7 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.updateEmployee(1L, updateRequest))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Employee with email john.updated@salon.pl already exists");
+        verify(employeeRepository).findById(1L);
     }
 
     // ========== deleteEmployee Tests ==========
@@ -276,6 +283,7 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.deleteEmployee(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found");
+        verify(employeeRepository).existsById(1L);
     }
 
     // ========== getEmployeeSchedule Tests ==========
@@ -295,6 +303,7 @@ class EmployeeServiceTest {
         assertThat(result.get(0).getStartTime()).isEqualTo(LocalTime.of(9, 0));
         assertThat(result.get(0).getEndTime()).isEqualTo(LocalTime.of(17, 0));
         assertThat(result.get(0).getIsWorkingDay()).isTrue();
+        verify(employeeRepository).existsById(1L);
     }
 
     @Test
@@ -308,6 +317,8 @@ class EmployeeServiceTest {
 
         // Then
         assertThat(result).isEmpty();
+        verify(employeeRepository).existsById(1L);
+        verify(employeeScheduleRepository).findByEmployeeId(1L);
     }
 
     @Test
@@ -319,5 +330,6 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.getEmployeeSchedule(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found");
+        verify(employeeRepository).existsById(1L);
     }
 }

@@ -34,30 +34,25 @@ public class FileStorageService {
     }
 
     public String storeFile(MultipartFile file, String bookTitle) {
-        // Walidacja czy plik nie jest pusty
         if (file.isEmpty()) {
             throw new BadRequestException("Nie można zapisać pustego pliku");
         }
 
-        // Pobranie oryginalnej nazwy i rozszerzenia
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
             throw new BadRequestException("Nazwa pliku jest wymagana");
         }
 
-        // Sprawdzenie rozszerzenia
         String extension = getFileExtension(originalFilename);
         if (!allowedExtensions.contains(extension.toLowerCase())) {
             throw new BadRequestException(
                     "Niedozwolone rozszerzenie pliku. Dozwolone: " + allowedExtensions);
         }
 
-        // Generowanie unikalnej nazwy pliku
         String filename = generateUniqueFilename(bookTitle, extension);
         Path targetLocation = this.uploadPath.resolve(filename);
 
         try {
-            // Zapis pliku na dysk
             Files.copy(file.getInputStream(), targetLocation,
                     StandardCopyOption.REPLACE_EXISTING);
             return filename;
@@ -88,9 +83,7 @@ public class FileStorageService {
     }
 
     private String generateUniqueFilename(String bookTitle, String extension) {
-        // Czyszczenie tytułu z niedozwolonych znaków
         String cleanTitle = bookTitle.replaceAll("[^a-zA-Z0-9]", "_");
-        // Dodanie UUID dla unikalności
         String uniqueId = UUID.randomUUID().toString().substring(0, 8);
         return cleanTitle + "_" + uniqueId + "." + extension;
     }

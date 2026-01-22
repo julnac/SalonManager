@@ -30,8 +30,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AvailabilityServiceTest {
@@ -94,7 +93,6 @@ class AvailabilityServiceTest {
         schedule.setEndTime(LocalTime.of(17, 0));
     }
 
-    // ========== findAvailableSlots Tests ==========
 
     @Test
     void shouldThrowExceptionWhenDateIsNull() {
@@ -102,6 +100,7 @@ class AvailabilityServiceTest {
         assertThatThrownBy(() -> availabilityService.findAvailableSlots(null, Arrays.asList(1L)))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Date cannot be null");
+        verify(serviceOfferRepository, never()).findAllById(any());
     }
 
     @Test
@@ -113,6 +112,7 @@ class AvailabilityServiceTest {
         assertThatThrownBy(() -> availabilityService.findAvailableSlots(pastDate, Arrays.asList(1L)))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Cannot search for dates in the past");
+        verify(serviceOfferRepository, never()).findAllById(any());
     }
 
     @Test
@@ -121,6 +121,7 @@ class AvailabilityServiceTest {
         assertThatThrownBy(() -> availabilityService.findAvailableSlots(testDate, null))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Service IDs list cannot be empty");
+        verify(serviceOfferRepository, never()).findAllById(any());
     }
 
     @Test
@@ -129,6 +130,7 @@ class AvailabilityServiceTest {
         assertThatThrownBy(() -> availabilityService.findAvailableSlots(testDate, Collections.emptyList()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Service IDs list cannot be empty");
+        verify(serviceOfferRepository, never()).findAllById(any());
     }
 
     @Test
@@ -142,6 +144,7 @@ class AvailabilityServiceTest {
         assertThatThrownBy(() -> availabilityService.findAvailableSlots(testDate, serviceIds))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("One or more services not found");
+        verify(serviceOfferRepository).findAllById(serviceIds);
     }
 
     @Test
@@ -168,6 +171,10 @@ class AvailabilityServiceTest {
         assertThat(result.getEmployees()).hasSize(1);
         assertThat(result.getEmployees().get(0).getEmployeeId()).isEqualTo(1L);
         assertThat(result.getEmployees().get(0).getAvailableSlots()).isNotEmpty();
+        verify(serviceOfferRepository).findAllById(serviceIds);
+        verify(employeeSpecializationRepository).findEmployeesWithAllServices(serviceIds, 1L);
+        verify(employeeScheduleRepository).findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek());
+        verify(reservationRepository).findActiveReservationsByEmployeeAndDate(1L, testDate);
     }
 
     @Test
@@ -185,6 +192,8 @@ class AvailabilityServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getEmployees()).isEmpty();
+        verify(serviceOfferRepository).findAllById(serviceIds);
+        verify(employeeSpecializationRepository).findEmployeesWithAllServices(serviceIds, 1L);
     }
 
     @Test
@@ -204,6 +213,9 @@ class AvailabilityServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getEmployees()).isEmpty();
+        verify(serviceOfferRepository).findAllById(serviceIds);
+        verify(employeeSpecializationRepository).findEmployeesWithAllServices(serviceIds, 1L);
+        verify(employeeScheduleRepository).findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek());
     }
 
     // ========== isSlotAvailable Tests ==========
@@ -214,7 +226,6 @@ class AvailabilityServiceTest {
         LocalDateTime startTime = LocalDateTime.of(testDate, LocalTime.of(10, 0));
         List<Long> serviceIds = Arrays.asList(1L);
 
-        // No need to mock serviceOfferRepository - exception is thrown before it's used
         when(employeeRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
@@ -222,6 +233,7 @@ class AvailabilityServiceTest {
         assertThatThrownBy(() -> availabilityService.isSlotAvailable(1L, startTime, serviceIds, null))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found");
+        verify(employeeRepository).findById(1L);
     }
 
     @Test
@@ -230,7 +242,6 @@ class AvailabilityServiceTest {
         LocalDateTime startTime = LocalDateTime.of(testDate, LocalTime.of(10, 0));
         List<Long> serviceIds = Arrays.asList(1L);
 
-        // No need to mock serviceOfferRepository - returns false before calculateTotalDuration is called
         when(employeeRepository.findById(1L))
                 .thenReturn(Optional.of(employee));
         when(employeeSpecializationRepository.countEmployeeQualifiedServices(1L, serviceIds))
@@ -241,6 +252,8 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(employeeRepository).findById(1L);
+        verify(employeeSpecializationRepository).countEmployeeQualifiedServices(1L, serviceIds);
     }
 
     @Test
@@ -249,7 +262,6 @@ class AvailabilityServiceTest {
         LocalDateTime startTime = LocalDateTime.of(testDate, LocalTime.of(10, 0));
         List<Long> serviceIds = Arrays.asList(1L);
 
-        // No need to mock serviceOfferRepository - returns false before calculateTotalDuration is called
         when(employeeRepository.findById(1L))
                 .thenReturn(Optional.of(employee));
         when(employeeSpecializationRepository.countEmployeeQualifiedServices(1L, serviceIds))
@@ -262,6 +274,9 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(employeeRepository).findById(1L);
+        verify(employeeSpecializationRepository).countEmployeeQualifiedServices(1L, serviceIds);
+        verify(employeeScheduleRepository).findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek());
     }
 
     @Test
@@ -284,6 +299,10 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(employeeRepository).findById(1L);
+        verify(employeeSpecializationRepository).countEmployeeQualifiedServices(1L, serviceIds);
+        verify(employeeScheduleRepository).findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek());
+        verify(serviceOfferRepository).findAllById(serviceIds);
     }
 
     @Test
@@ -308,6 +327,7 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result).isFalse();
+        verify(reservationRepository).hasOverlappingReservation(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
@@ -332,6 +352,10 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result).isTrue();
+        verify(reservationRepository).hasOverlappingReservation(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(employeeRepository).findById(1L);
+        verify(employeeSpecializationRepository).countEmployeeQualifiedServices(1L, serviceIds);
+        verify(employeeScheduleRepository).findByEmployeeIdAndDayOfWeek(1L, testDate.getDayOfWeek());
     }
 
     @Test
@@ -358,6 +382,10 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result).isTrue();
+        verify(reservationRepository).hasOverlappingReservationExcluding(
+                eq(excludeReservationId), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(employeeRepository).findById(1L);
+        verify(employeeSpecializationRepository).countEmployeeQualifiedServices(1L, serviceIds);
     }
 
     @Test
@@ -374,5 +402,7 @@ class AvailabilityServiceTest {
 
         // Then
         assertThat(result.getTotalDurationMinutes()).isEqualTo(90);
+        verify(serviceOfferRepository).findAllById(serviceIds);
+        verify(employeeSpecializationRepository).findEmployeesWithAllServices(serviceIds, 2L);
     }
 }

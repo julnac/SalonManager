@@ -19,11 +19,13 @@ import pl.edu.salonmanager.salon_manager.repository.ServiceOfferRepository;
 import pl.edu.salonmanager.salon_manager.repository.UserRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -122,6 +124,7 @@ class ReservationServiceTest {
                 .hasMessageContaining("Total service duration must be greater than 0");
 
         verify(reservationRepository, never()).save(any());
+        verify(availabilityService, never()).isSlotAvailable(any(), any(), any(), any());
     }
 
     @Test
@@ -315,5 +318,298 @@ class ReservationServiceTest {
 
         assertThat(result.getTotalPrice()).isEqualByComparingTo(new BigDecimal("80.00"));
         assertThat(result.getEndTime()).isEqualTo(request.getStartTime().plusMinutes(50)); // 30 + 20
+    }
+
+    // ==================== Additional Tests for 100% Coverage ====================
+
+    @Test
+    void shouldGetAllReservationsWithoutStatusFilter() {
+        // Given
+        List<Reservation> reservations = Arrays.asList(testReservation);
+        when(reservationRepository.findAll()).thenReturn(reservations);
+
+        // When
+        List<Reservation> result = reservationService.getAllReservations(null);
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(testReservation);
+        verify(reservationRepository).findAll();
+        verify(reservationRepository, never()).findByStatus(any());
+    }
+
+    @Test
+    void shouldGetReservationById() {
+        // Given
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(testReservation));
+
+        // When
+        Reservation result = reservationService.getReservationById(1L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        verify(reservationRepository).findById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenReservationNotFoundById() {
+        // Given
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.getReservationById(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Reservation not found with id: 999");
+
+        verify(reservationRepository).findById(999L);
+    }
+
+    @Test
+    void shouldGetReservationsByEmployeeAndDateRange() {
+        // Given
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(7);
+        List<Reservation> reservations = Arrays.asList(testReservation);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(reservationRepository.findByEmployeeAndStartTimeBetween(
+                eq(testEmployee), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(reservations);
+
+        // When
+        List<Reservation> result = reservationService.getReservationsByEmployeeAndDateRange(1L, startDate, endDate);
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(testReservation);
+        verify(employeeRepository).findById(1L);
+        verify(reservationRepository).findByEmployeeAndStartTimeBetween(
+                eq(testEmployee), any(LocalDateTime.class), any(LocalDateTime.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenEmployeeNotFoundInDateRangeQuery() {
+        // Given
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(7);
+        when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.getReservationsByEmployeeAndDateRange(999L, startDate, endDate))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Employee not found with id: 999");
+
+        verify(employeeRepository).findById(999L);
+        verify(reservationRepository, never()).findByEmployeeAndStartTimeBetween(any(), any(), any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenApprovingAlreadyApprovedReservation() {
+        // Given
+        testReservation.setStatus(ReservationStatus.APPROVED_BY_SALON);
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.approveReservation(1L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("cannot be approved in current status");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(1L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenApprovingCancelledReservation() {
+        // Given
+        testReservation.setStatus(ReservationStatus.CANCELLED);
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.approveReservation(1L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("cannot be approved in current status: CANCELLED");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(1L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenApproveReservationNotFound() {
+        // Given
+        when(reservationRepository.findByIdWithUserAndEmployee(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.approveReservation(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Reservation not found with id: 999");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(999L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenConfirmReservationNotFound() {
+        // Given
+        when(reservationRepository.findByIdWithUserAndEmployee(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.confirmReservation(999L, 1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Reservation not found with id: 999");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(999L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCancelReservationNotFound() {
+        // Given
+        when(reservationRepository.findByIdWithUserAndEmployee(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.cancelReservation(999L, testUser))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Reservation not found with id: 999");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(999L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdateReservationNotFound() {
+        // Given
+        UpdateReservationRequest request = new UpdateReservationRequest();
+        request.setStartTime(LocalDateTime.now().plusDays(1));
+        request.setEmployeeId(1L);
+        request.setServiceIds(Set.of(1L));
+
+        when(reservationRepository.findByIdWithUserAndEmployee(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.updateReservation(999L, request))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Reservation not found with id: 999");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(999L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdateNotAuthorized() {
+        // Given
+        UpdateReservationRequest request = new UpdateReservationRequest();
+        request.setStartTime(LocalDateTime.now().plusDays(1));
+        request.setEmployeeId(1L);
+        request.setServiceIds(Set.of(1L));
+
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
+        when(securityService.canEditReservation(any(), any())).thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.updateReservation(1L, request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Not authorized to update this reservation");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(1L);
+        verify(securityService).canEditReservation(testReservation, testUser);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingReservationInThePast() {
+        // Given
+        CreateReservationRequest request = new CreateReservationRequest();
+        request.setStartTime(LocalDateTime.now().minusDays(1));
+        request.setEmployeeId(1L);
+        request.setServiceIds(Set.of(1L));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.createReservation(request, 1L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Cannot create reservation in the past");
+
+        verify(userRepository).findById(1L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingReservationTooFarInFuture() {
+        // Given
+        CreateReservationRequest request = new CreateReservationRequest();
+        request.setStartTime(LocalDateTime.now().plusMonths(4));
+        request.setEmployeeId(1L);
+        request.setServiceIds(Set.of(1L));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.createReservation(request, 1L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Cannot create reservation more than 3 months ahead");
+
+        verify(userRepository).findById(1L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenEmployeeNotFoundDuringCreate() {
+        // Given
+        CreateReservationRequest request = new CreateReservationRequest();
+        request.setStartTime(LocalDateTime.now().plusDays(1));
+        request.setEmployeeId(999L);
+        request.setServiceIds(Set.of(1L));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.createReservation(request, 1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Employee not found with id: 999");
+
+        verify(userRepository).findById(1L);
+        verify(employeeRepository).findById(999L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenServiceNotFoundDuringCreate() {
+        // Given
+        CreateReservationRequest request = new CreateReservationRequest();
+        request.setStartTime(LocalDateTime.now().plusDays(1));
+        request.setEmployeeId(1L);
+        request.setServiceIds(Set.of(999L));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(serviceOfferRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.createReservation(request, 1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Service not found with id: 999");
+
+        verify(userRepository).findById(1L);
+        verify(employeeRepository).findById(1L);
+        verify(serviceOfferRepository).findById(999L);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldConfirmReservationWhenStatusIsCreated() {
+        // Given - trying to confirm CREATED status should fail
+        testReservation.setStatus(ReservationStatus.CREATED);
+        when(reservationRepository.findByIdWithUserAndEmployee(1L)).thenReturn(Optional.of(testReservation));
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.confirmReservation(1L, 1L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("cannot be confirmed in current status: CREATED");
+
+        verify(reservationRepository).findByIdWithUserAndEmployee(1L);
+        verify(reservationRepository, never()).save(any());
     }
 }

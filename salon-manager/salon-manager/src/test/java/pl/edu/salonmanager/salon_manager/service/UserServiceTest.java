@@ -101,6 +101,7 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.registerUser(registrationDto))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("User with email test@example.com already exists");
+        verify(userRepository).existsByEmail("test@example.com");
     }
 
     @Test
@@ -113,6 +114,8 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.registerUser(registrationDto))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Role USER not found");
+        verify(userRepository).existsByEmail("test@example.com");
+        verify(roleRepository).findByName("USER");
     }
 
     @Test

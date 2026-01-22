@@ -77,6 +77,7 @@ class ServiceOfferServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getName()).isEqualTo("Haircut");
         assertThat(result.get(1).getName()).isEqualTo("Hair Coloring");
+        verify(serviceOfferRepository).findAll();
     }
 
     @Test
@@ -89,6 +90,7 @@ class ServiceOfferServiceTest {
 
         // Then
         assertThat(result).isEmpty();
+        verify(serviceOfferRepository).findAll();
     }
 
     // ========== getServiceById Tests ==========
@@ -107,6 +109,7 @@ class ServiceOfferServiceTest {
         assertThat(result.getName()).isEqualTo("Haircut");
         assertThat(result.getPrice()).isEqualByComparingTo(new BigDecimal("50.00"));
         assertThat(result.getDurationMinutes()).isEqualTo(30);
+        verify(serviceOfferRepository).findById(1L);
     }
 
     @Test
@@ -118,6 +121,7 @@ class ServiceOfferServiceTest {
         assertThatThrownBy(() -> serviceOfferService.getServiceById(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Service not found");
+        verify(serviceOfferRepository).findById(1L);
     }
 
     // ========== createService Tests ==========
@@ -182,6 +186,7 @@ class ServiceOfferServiceTest {
         assertThatThrownBy(() -> serviceOfferService.updateService(1L, updateRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Service not found");
+        verify(serviceOfferRepository).findById(1L);
     }
 
     // ========== deleteService Tests ==========
@@ -208,5 +213,6 @@ class ServiceOfferServiceTest {
         assertThatThrownBy(() -> serviceOfferService.deleteService(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Service not found");
+        verify(serviceOfferRepository).existsById(1L);
     }
 }

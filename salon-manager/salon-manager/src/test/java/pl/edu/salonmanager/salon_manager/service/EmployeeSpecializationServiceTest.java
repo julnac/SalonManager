@@ -101,6 +101,7 @@ class EmployeeSpecializationServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getServiceName()).isEqualTo("Haircut");
         assertThat(result.get(1).getServiceName()).isEqualTo("Hair Coloring");
+        verify(employeeSpecializationRepository).findAll();
     }
 
     @Test
@@ -113,6 +114,7 @@ class EmployeeSpecializationServiceTest {
 
         // Then
         assertThat(result).isEmpty();
+        verify(employeeSpecializationRepository).findAll();
     }
 
     // ========== getSpecializationById Tests ==========
@@ -133,6 +135,7 @@ class EmployeeSpecializationServiceTest {
         assertThat(result.getServiceId()).isEqualTo(1L);
         assertThat(result.getServiceName()).isEqualTo("Haircut");
         assertThat(result.getExperienceYears()).isEqualTo(5);
+        verify(employeeSpecializationRepository).findById(1L);
     }
 
     @Test
@@ -144,6 +147,7 @@ class EmployeeSpecializationServiceTest {
         assertThatThrownBy(() -> employeeSpecializationService.getSpecializationById(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Specialization not found");
+        verify(employeeSpecializationRepository).findById(1L);
     }
 
     // ========== createSpecialization Tests ==========
@@ -185,6 +189,7 @@ class EmployeeSpecializationServiceTest {
         assertThatThrownBy(() -> employeeSpecializationService.createSpecialization(createRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found");
+        verify(employeeRepository).findById(1L);
     }
 
     @Test
@@ -197,6 +202,7 @@ class EmployeeSpecializationServiceTest {
         assertThatThrownBy(() -> employeeSpecializationService.createSpecialization(createRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Service not found");
+        verify(employeeRepository).findById(1L);
     }
 
     @Test
@@ -219,6 +225,7 @@ class EmployeeSpecializationServiceTest {
 
         // Then
         assertThat(result.getExperienceYears()).isEqualTo(10);
+        verify(employeeRepository).findById(1L);
     }
 
     // ========== deleteSpecialization Tests ==========
@@ -245,5 +252,6 @@ class EmployeeSpecializationServiceTest {
         assertThatThrownBy(() -> employeeSpecializationService.deleteSpecialization(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Specialization not found");
+        verify(employeeSpecializationRepository).existsById(1L);
     }
 }
