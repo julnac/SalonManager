@@ -58,6 +58,7 @@ public class SecurityConfig {
 
                         // ADMIN tylko
                         .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/employee/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/employees/*/schedule").hasRole("ADMIN")
@@ -73,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/reservations/*/approve").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/employee-specializations/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/employee-specializations/**").hasRole("ADMIN")
+
 
                         // USER (zalogowany) - rezerwacje i opinie
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/my").hasRole("USER")

@@ -53,6 +53,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete user (ADMIN and owner)")
+    public void deleteUser(@PathVariable Long id) {
+        log.info("REST request to delete user: {}", id);
+        userService.deleteUser(id);
+    }
+
     @PostMapping("/login")
     @Operation(summary = "Login user (PUBLIC)", description = "Authenticates user and returns user details with roles")
     @ApiResponses(value = {

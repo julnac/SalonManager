@@ -39,6 +39,14 @@ public class EmployeeSpecializationController {
         return ResponseEntity.ok(specialization);
     }
 
+    @GetMapping("/{id}/service")
+    @Operation(summary = "Get specialization by ServiceID (PUBLIC)", description = "Returns a list of specializations by Service ID")
+    public ResponseEntity<List<EmployeeSpecializationDto>> getSpecializationsByServiceId(@PathVariable Long id) {
+        log.info("REST request to get specializations for service: {}", id);
+        List<EmployeeSpecializationDto> specializations = employeeSpecializationService.getSpecializationsByServiceId(id);
+        return ResponseEntity.ok(specializations);
+    }
+
     @PostMapping
     @Operation(summary = "Create specialization (ADMIN)", description = "Creates a new employee specialization")
     public ResponseEntity<EmployeeSpecializationDto> createSpecialization(

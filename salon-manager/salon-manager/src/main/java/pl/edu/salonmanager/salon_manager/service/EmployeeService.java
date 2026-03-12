@@ -1,5 +1,6 @@
 package pl.edu.salonmanager.salon_manager.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,12 +10,15 @@ import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
 import pl.edu.salonmanager.salon_manager.model.dto.employee.response.EmployeeDto;
 import pl.edu.salonmanager.salon_manager.model.dto.employee.request.CreateEmployeeRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.employee.request.UpdateEmployeeRequest;
+import pl.edu.salonmanager.salon_manager.model.dto.employeeSchedule.request.CreateEmployeeScheduleRequest;
 import pl.edu.salonmanager.salon_manager.model.dto.employeeSchedule.response.EmployeeScheduleDto;
 import pl.edu.salonmanager.salon_manager.model.entity.Employee;
 import pl.edu.salonmanager.salon_manager.model.entity.EmployeeSchedule;
 import pl.edu.salonmanager.salon_manager.repository.EmployeeRepository;
 import pl.edu.salonmanager.salon_manager.repository.EmployeeScheduleRepository;
 
+import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -107,6 +111,105 @@ public class EmployeeService {
         return schedules.stream()
                 .map(this::mapScheduleToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<EmployeeScheduleDto> createEmployeeSchedule(@Valid List<CreateEmployeeScheduleRequest> request, Long employeeId) {
+
+        Employee employee = employeeRepository.findById(employeeId)
+            .orElseThrow(() -> {
+                log.warn("Attempt to create schedule for not existing employee");
+                return new BadRequestException("No such employee exists");
+            });
+
+        log.debug("Creating new chedule for employee {}", employee);
+
+
+        List<EmployeeSchedule> schedules = new ArrayList<>();
+
+        for (CreateEmployeeScheduleRequest req : request) {
+
+            if (employeeScheduleRepository
+                    .existsByEmployeeAndDayOfWeek(employee, req.getDayOfWeek())) {
+                throw new BadRequestException(
+                        "Schedule for " + req.getDayOfWeek() + " already exists"
+                );
+            }
+
+            EmployeeSchedule schedule = new EmployeeSchedule();
+            schedule.setEmployee(employee);
+            schedule.setDayOfWeek(req.getDayOfWeek());
+            schedule.setStartTime(req.getStartTime());
+            schedule.setEndTime(req.getEndTime());
+            schedule.setIsWorkingDay(req.getStartTime() != null && req.getEndTime() != null);
+
+            schedules.add(schedule);
+        }
+
+        List<EmployeeSchedule> saved = employeeScheduleRepository.saveAll(schedules);
+
+        log.info("Schedule created successfully for employee: {}", employee.getId());
+        return saved.stream()
+                .map(this::mapScheduleToDto)
+                .toList();
+    }
+
+    @Transactional
+    public void deleteEmployeeSchedule( Long employeeId, DayOfWeek dayOfWeek) {
+
+        Employee employee = employeeRepository.findById(employeeId)
+            .orElseThrow(() -> {
+                log.warn("Attempt to delete schedule for not existing employee");
+                return new BadRequestException("No such employee exists");
+            });
+
+        EmployeeSchedule schedule = employeeScheduleRepository.findByEmployeeAndDayOfWeek( employee, dayOfWeek)
+            .orElseThrow(() -> {
+                log.warn("Attempt to delete not existing schedule");
+                return new BadRequestException("No such employee exists");
+            });
+
+        employeeScheduleRepository.deleteById(schedule.getId());
+        log.info("Schedule deleted successfully with id");
+    }
+
+    @Transactional
+    public List<EmployeeScheduleDto> updateEmployeeSchedule(@Valid List<CreateEmployeeScheduleRequest> request, Long employeeId) {
+
+        Employee employee = employeeRepository.findById(employeeId)
+            .orElseThrow(() -> {
+                log.warn("Attempt to update schedule for not existing employee");
+                return new BadRequestException("No such employee exists");
+            });
+
+        log.debug("Updating schedule for employee {}", employee);
+
+        List<EmployeeSchedule> updatedSchedules = new ArrayList<>();
+
+        for (CreateEmployeeScheduleRequest req : request) {
+
+            EmployeeSchedule schedule = employeeScheduleRepository
+                    .findByEmployeeAndDayOfWeek(employee, req.getDayOfWeek())
+                    .orElseGet(() -> {
+                        EmployeeSchedule newSchedule = new EmployeeSchedule();
+                        newSchedule.setEmployee(employee);
+                        newSchedule.setDayOfWeek(req.getDayOfWeek());
+                        return newSchedule;
+                    });
+
+            schedule.setStartTime(req.getStartTime());
+            schedule.setEndTime(req.getEndTime());
+            schedule.setIsWorkingDay(req.getStartTime() != null && req.getEndTime() != null);
+
+            updatedSchedules.add(schedule);
+        }
+
+        List<EmployeeSchedule> saved = employeeScheduleRepository.saveAll(updatedSchedules);
+
+        log.info("Schedule updated successfully for employee: {}", employee.getId());
+        return saved.stream()
+                .map(this::mapScheduleToDto)
+                .toList();
     }
 
     private EmployeeDto mapToDto(Employee entity) {

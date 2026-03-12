@@ -201,7 +201,8 @@ public class ReservationController {
                 reservation.getUser().getLastName(),
                 reservation.getUser().getEmail(),
                 reservation.getEmployee().getFirstName(),
-                reservation.getEmployee().getLastName()
+                reservation.getEmployee().getLastName(),
+                reservation.getServicesIds()
         );
     }
 }

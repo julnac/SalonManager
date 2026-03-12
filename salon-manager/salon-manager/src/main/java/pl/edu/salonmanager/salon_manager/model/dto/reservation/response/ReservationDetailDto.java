@@ -7,6 +7,7 @@ import pl.edu.salonmanager.salon_manager.model.enums.ReservationStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -22,4 +23,5 @@ public class ReservationDetailDto {
     private String clientEmail;
     private String employeeFirstName;
     private String employeeLastName;
+    private Set<Long> serviceIds;
 }
