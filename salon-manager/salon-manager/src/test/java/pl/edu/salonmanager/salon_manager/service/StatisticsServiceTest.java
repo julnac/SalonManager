@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.salonmanager.salon_manager.dao.StatisticsDao;
-import pl.edu.salonmanager.salon_manager.exception.ResourceNotFoundException;
+
 import pl.edu.salonmanager.salon_manager.model.dto.statistics.ClientStatisticsDto;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,8 +35,8 @@ class StatisticsServiceTest {
                 1L,
                 "Jan Kowalski",
                 "jan.kowalski@example.com",
-                10L,                // totalVisits
-                60,                 // averageDurationMinutes
+                10L, // totalVisits
+                60, // averageDurationMinutes
                 new BigDecimal("150.00"), // averageSpending
                 new BigDecimal("1500.00") // totalSpending
         );
@@ -76,16 +76,16 @@ class StatisticsServiceTest {
     }
 
     @Test
-    void shouldThrowResourceNotFoundExceptionWhenClientHasNoStats() {
+    void shouldReturnNullWhenClientHasNoStats() {
         // Given
         Long id = 99L;
         when(statisticsDao.getClientStatisticsById(id)).thenReturn(Optional.empty());
 
-        // When & Then
-        assertThatThrownBy(() -> statisticsService.getClientStatisticsById(id))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("No statistics found for user with id: " + id);
+        // When
+        ClientStatisticsDto result = statisticsService.getClientStatisticsById(id);
 
+        // Then
+        assertThat(result).isNull();
         verify(statisticsDao).getClientStatisticsById(id);
     }
 }

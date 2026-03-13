@@ -136,7 +136,7 @@ class SecurityIntegrationTest {
     @WithMockUser(username = "admin@salon.com", roles = {"ADMIN"})
     void shouldAllowAdminToAccessStatistics() throws Exception {
         mockMvc.perform(get("/api/v1/statistics/clients/1"))
-                .andExpect(status().is4xxClientError()); // 404 not 403
+                .andExpect(status().isOk());
     }
 
     @Test

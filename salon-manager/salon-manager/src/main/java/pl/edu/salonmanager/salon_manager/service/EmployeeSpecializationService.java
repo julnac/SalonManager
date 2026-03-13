@@ -43,6 +43,16 @@ public class EmployeeSpecializationService {
     }
 
     @Transactional
+    public List<EmployeeSpecializationDto> getSpecializationsByServiceId(Long ServiceId) {
+
+        List<EmployeeSpecialization> specializations = employeeSpecializationRepository.findByServiceOfferId(ServiceId);
+
+        return specializations.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public EmployeeSpecializationDto createSpecialization(CreateEmployeeSpecializationRequest request) {
         log.debug("Creating specialization for employee {} and service {}",
                 request.getEmployeeId(), request.getServiceId());

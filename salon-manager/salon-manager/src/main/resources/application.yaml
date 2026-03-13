@@ -53,7 +53,7 @@ management:
             enabled: true
 
 salon:
-    name: Salon U Kasi
+    name: Rosé Lab
     address: ul. Kwiatowa 12, Warszawa
     phone: "+48 123 456 789"
     email: kontakt@salon.pl

@@ -62,6 +62,18 @@ public class UserService {
         return mapToDto(savedUser);
     }
 
+    @Transactional
+    public void deleteUser(Long userId) {
+
+        if(userRepository.findById(userId).isEmpty()) {
+            log.warn("Deletion failed - user not found with id: {}", userId);
+            throw new BadRequestException("User with id " + userId + " does not exist");
+        }
+
+        userRepository.deleteById(userId);
+        log.info("User with id {} has been deleted", userId);
+    }
+
     private UserDto mapToDto(User user) {
         return new UserDto(
                 user.getId(),
