@@ -1,8 +1,35 @@
-# Salon Manager
+# Salon Manager - System Rezerwacji i Zarządzania
 
-Aplikacja do zarządzania salonem, składająca się z frontendu w **Angular** i backendu w **Spring Boot** (Java), korzystająca z bazy danych **PostgreSQL**.
+Kompleksowa aplikacja webowa typu SaaS dedykowana dla salonów usługowych (fryzjerzy, kosmetyczki). System nie tylko umożliwia rezerwację wizyt, ale pełni rolę centrum dowodzenia biznesem - od zarządzania grafikami pracowników po analitykę finansową.
 
-Wszystkie środowiska mogą zostać uruchomione równolegle za pomocą Dockera, albo osobno w trybie developerskim.
+## Kluczowe Funkcjonalności
+
+### Algorytm Rezerwacji
+* Uzytkownik wybiera usługi, które chce wykonać
+* Algorytm sumuje czas trwania wybranych usług i przelicza je na jednostki czasowe (sloty 15 min).
+* Algorytm filtruje pracowników pod kątem posiadanych specjalizacji wymaganych do wykonania kompletu wybranych usług.
+* Algorytm wyszukuje odpowiednio długie okna czasowe w grafikach pracowników.
+* Algorytm wyświetla użytkownikowi dostępne terminy do wyboru.
+
+### Moduł Analityczny
+* Obliczanie średniej kwoty wizyty klienta.
+* Analiza średniego czasu trwania usług.
+* Wykorzystanie Group By i RowMapper dla maksymalnej wydajności przy dużych zbiorach danych.
+
+### Panel Klienta
+* Historia wizyt: Przegląd zakończonych i odwołanych rezerwacji z funkcją filtrowania i sortowania.
+* Zarządzanie kontem: Edycja danych profilowych (Reactive Forms) z walidacją pól.
+* Elastyczne zmiany: Możliwość edycji lub odwołania rezerwacji, zanim salon potwierdzi wizytę.
+* Wystawianie opinii dla salonu z możliwością usuwania własnych opinii i dodawania zdjęć do opinii.
+
+### Panel Administratora
+* Zarządzanie kadrą: Pełny moduł CRUD dla pracowników wraz ze szczegółowymi formularzami.
+* Kontrola użytkowników: Monitorowanie statusów kont (Aktywne/Zawieszone) i statystyk użytkowników.
+* Przegląd rezerwacji: Centralny system zarządzania wszystkimi wizytami w salonie.
+
+![User dashboard](./images/user.mp4)
+
+![Admin dashboard](./images/admin.mp4)
 
 ## Architektura projektu
 
@@ -10,15 +37,43 @@ Wszystkie środowiska mogą zostać uruchomione równolegle za pomocą Dockera, 
 * **`salon-manager/`** - Serwer aplikacji backendowej (Spring Boot, Java 21) nasłuchujący na porcie `8080`.
 * **`postgres`** - Relacyjna baza danych nasłuchująca na porcie `5432`.
 
-## Wymagania
+## Stack Techniczny
 
-Aby uruchomić projekt jako całość za pomocą kontenerów (rozwiązanie rekomendowane i najprostsze) będziesz potrzebować:
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) lub samego demona Docker 
-* `docker-compose` (zintegrowany z nowszymi wersjami Dockera w komendzie `docker compose`)
+### Backend: Spring Boot 3 (Java 21)
 
-## Instrukcja uruchomienia
+Data Access Layer: 
+* Spring Data JPA: Obsługa złożonych relacji (@ManyToOne, @ManyToMany) oraz customowe zapytania z paginacją (Pageable).
+* JdbcTemplate & SQL: Wykorzystane w module analitycznym. Napisane od zera zapytania SQL z GROUP BY oraz własne mapowanie wyników przez RowMapper do obliczania statystyk biznesowych.
 
-### 1. Uruchomienie całości przez Docker Compose (Rekomendowane)
+Logika i Bezpieczeństwo:
+* Spring Security: System ról (ROLE_CLIENT, ROLE_ADMIN), szyfrowanie BCrypt oraz ochrona endpointów REST.
+* State Machine: Zarządzanie cyklem życia rezerwacji (CREATED -> CONFIRMED -> APPROVED -> CANCELLED) z logiką blokady edycji.
+* Integrity: Wykorzystanie @Transactional dla zapewnienia spójności procesów wielousługowych.
+
+Komunikacja i Widoki:
+* REST API & Swagger: Pełna dokumentacja OpenAPI dostępna pod /swagger-ui.html.
+* Hybrid Rendering: Wykorzystanie Thymeleaf do szybkiego renderowania sekcji publicznej (cennik, opinie) oraz Angular dla zaawansowanych paneli interaktywnych.
+* Global Error Handling: Centralny mechanizm @RestControllerAdvice zapewniający spójne odpowiedzi API.
+
+### Frontend: Angular 20
+* State Management: Reaktywne podejście oparte na Services + RxJS.
+* UI/UX: Biblioteka Angular Material, obsługa trybów Dark/Light Mode oraz pełna responsywność.
+* Zaawansowane Formularze: Wielokrokowy kreator wizyt (Material Stepper) z autorskimi walidatorami (custom validators).
+* Security & Flow: Implementacja Guards (ochrona tras) oraz Interceptors (automatyczne dołączanie autentykacji i obsługa błędów).
+
+### Jakość Kodu i DevOps
+* Testowanie (JUnit 5 & Mockito): Pokrycie kodu na poziomie 80% (JaCoCo). Testy obejmują repozytoria (@DataJpaTest), kontrolery (@WebMvcTest) oraz pełne scenariusze integracyjne (@SpringBootTest).
+* Konteneryzacja: Pełna orkiestracja środowiska za pomocą Docker Compose (Spring Boot, PostgreSQL, Nginx).
+
+## Model Danych
+* User & Role – system autoryzacji.
+* Employee & ServiceOffer – zarządzanie kadrą i ofertą (relacja specjalizacji).
+* Reservation – centralny punkt systemu łączący klienta, pracownika i wybrane usługi.
+* Review – system opinii budujący zaufanie w strefie publicznej.
+
+![Class Diagram](./images/diagram_klas.png)
+
+## Instalacja i Demo
 
 Wejdź do głównego katalogu `salon-manager` (tego, w którym znajduje się plik `docker-compose.yml`) i wykonaj poniższą komendę:
 
@@ -26,48 +81,22 @@ Wejdź do głównego katalogu `salon-manager` (tego, w którym znajduje się pli
 docker compose up -d --build
 ```
 
-Co się stanie?
-1. Zostanie pobrany obraz PostgreSQL i wystartowana baza danych.
-2. Zostanie przebudowany (z użyciem Mavena poprzez Dockerfile wewnątrz backendu) i uruchomiony backend w Spring Boot. Backend poczeka, aż baza danych zgłosi gotowość.
-3. Zostanie skompilowany frontend (Angular) do statycznych plików i umiejscowiony na Nginxsie. Frontend uruchomi się dopiero, gdy odpowiadać będzie podpięty backend.
-
 **Dostępne aplikacje po uruchomieniu:**
-* Główny interfejs (Frontend): `http://localhost/` lub po prostu `http://localhost`
+* Główny interfejs (Frontend): `http://localhost`
 * API Backend: `http://localhost:8080/api/...`
 * Baza danych: `localhost:5432`
 
-Aby **zatrzymać** wszystkie kontenery, użyj polecenia:
+**Logowanie (Dane testowe):**
+* Admin: admin@salon.pl / admin123
+* Klient: user@example.com / haslo123
+
+**Uruchomienie testów backendu:**
+
 ```bash
-docker compose down
+./mvnw clean test
 ```
 
-### 2. Manualne uruchomienie środowiska do pisania kodu (Developer Mode)
+**Swagger:** http://localhost:8080/swagger-ui/index.html
+**JaCoCo:** http://localhost:8080/jacoco/index.html
 
-Jeżeli chcesz pisać kod i widzieć zmiany na żywo - musisz odpalić obydwie aplikacje ręcznie.
-
-> Uwaga: Upewnij się, że masz zainstalowaną Javę w wersji co najmniej 21 oraz środowisko Node.js. Oprócz tego musisz mieć działającą bazę danych Postgres (możesz np. odpalić samego postgresa z dockera: `docker compose up -d postgres`)
-
-#### Backend (Spring Boot):
-1. Przejdź do folderu backendu: 
-```bash
-cd salon-manager
-```
-2. Uruchom polecenie:
-```bash
-./mvnw spring-boot:run
-```
-
-#### Frontend (Angular):
-1. Przejdź do folderu frontendu (w osobnym oknie terminala):
-```bash
-cd frontend
-```
-2. Zainstaluj biblioteki z `package.json` (wymagane tylko za pierwszym razem):
-```bash
-npm install
-```
-3. Uruchom deweloperski serwer z auto-odświeżaniem:
-```bash
-npm start
-```
-Frontend domyślnie będzie dostępny pod adresem: `http://localhost:4200/`. Dzięki konfiguracji w `SecurityConfig` (backend), port 4200 jest autoryzowany do zapytań CORS w trybie deweloperskim.
+![jacoco coverage](./images/jacoco.png)
