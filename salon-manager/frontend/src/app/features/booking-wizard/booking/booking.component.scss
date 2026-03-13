@@ -1,0 +1,230 @@
+.booking-page {
+  padding: 0.5rem 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 1rem;
+}
+
+.booking-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Sekcja kalendarza */
+.calendar-section {
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+}
+
+.employee-filter {
+  width: 180px;
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+/* Lista dni */
+.days-list {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.day-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 0.8rem 0.6rem;
+  border: 2px solid var(--mat-app-outline-variant, #e0e0e0);
+  border-radius: 10px;
+  background: var(--mat-app-surface, #fff);
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 0.15rem;
+
+  &:hover:not(:disabled) {
+    border-color: var(--mat-app-primary, #e91e63);
+    background: rgba(233, 30, 99, 0.05);
+  }
+
+  &.selected {
+    border-color: var(--mat-app-primary, #e91e63);
+    background: var(--mat-app-primary, #e91e63);
+    color: var(--mat-app-on-primary, #fff);
+
+    .no-availability {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  &.no-slots {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.day-name {
+  font-size: 0.65rem;
+  text-transform: capitalize;
+}
+
+.day-number {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.no-availability {
+  font-size: 0.55rem;
+  color: var(--mat-app-error, #f44336);
+}
+
+/* Sekcja slotów */
+.slots-section {
+  h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+  }
+}
+
+.employees-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.employee-row {
+  background: var(--mat-app-surface, #fff);
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.employee-name {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--mat-app-on-surface, #333);
+}
+
+.slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.slot-chip {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--mat-app-outline, #ccc);
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--mat-app-primary, #e91e63);
+    background: rgba(233, 30, 99, 0.1);
+  }
+
+  &.selected {
+    background: var(--mat-app-primary, #e91e63);
+    color: var(--mat-app-on-primary, #fff);
+    border-color: var(--mat-app-primary, #e91e63);
+  }
+}
+
+.no-slots-message {
+  text-align: center;
+  color: var(--mat-app-on-surface-variant, #666);
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Przyciski nawigacji */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--mat-app-outline-variant, #e0e0e0);
+}
+
+/* Responsywność */
+@media (max-width: 480px) {
+  .booking-page {
+    padding: 0.25rem 0;
+  }
+
+  .calendar-section {
+    padding: 1rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .employee-filter {
+    width: 100%;
+  }
+
+  .days-list {
+    gap: 0.3rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .day-button {
+    min-width: 56px;
+    padding: 0.5rem 0.3rem;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+
+  .day-name {
+    font-size: 0.6rem;
+  }
+
+  .day-number {
+    font-size: 0.85rem;
+  }
+
+  .slot-chip {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,94 @@
+<div class="reservations-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1>Rezerwacje</h1>
+    </div>
+
+    <div class="header-right">
+      <!-- View toggle -->
+      <div class="view-toggle">
+        <button mat-icon-button
+                [class.active]="activeView() === 'calendar'"
+                (click)="setView('calendar')"
+                matTooltip="Widok kalendarza">
+          <mat-icon>calendar_month</mat-icon>
+        </button>
+        <button mat-icon-button
+                [class.active]="activeView() === 'list'"
+                (click)="setView('list')"
+                matTooltip="Widok listy">
+          <mat-icon>list</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared filters -->
+  <div class="filters-section">
+    <mat-form-field appearance="outline" class="filter-field filter-search">
+      <mat-label>Szukaj</mat-label>
+      <input matInput
+             [value]="searchText()"
+             (input)="searchText.set($any($event.target).value)"
+             placeholder="Klient lub pracownik..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Status</mat-label>
+      <mat-select [value]="selectedStatus()" (selectionChange)="selectedStatus.set($event.value)">
+        <mat-option value="">Wszystkie</mat-option>
+        <mat-option value="CREATED">Utworzone</mat-option>
+        <mat-option value="APPROVED_BY_SALON">Zatwierdzone</mat-option>
+        <mat-option value="CONFIRMED_BY_CLIENT">Potwierdzone</mat-option>
+        <mat-option value="CANCELLED">Anulowane</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Pracownik</mat-label>
+      <mat-select [value]="selectedEmployee()" (selectionChange)="selectedEmployee.set($event.value)">
+        <mat-option value="">Wszyscy</mat-option>
+        @for (employee of employees(); track employee) {
+          <mat-option [value]="employee">{{ employee }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-checkbox
+      [checked]="showCancelled()"
+      (change)="showCancelled.set($event.checked)">
+      Pokaż anulowane
+    </mat-checkbox>
+
+    @if (activeFiltersCount() > 0) {
+      <button mat-stroked-button color="warn" (click)="clearFilters()" class="clear-filters-btn">
+        <mat-icon>filter_alt_off</mat-icon>
+        Wyczyść ({{ activeFiltersCount() }})
+      </button>
+    }
+  </div>
+
+  <!-- Content -->
+  @if (isLoading()) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Ładowanie rezerwacji...</p>
+    </div>
+  } @else {
+    @if (activeView() === 'calendar') {
+      <app-calendar-view
+        [reservations]="filteredReservations()"
+        (approve)="onApprove($event)"
+        (cancelReservation)="onCancel($event)"
+      />
+    } @else {
+      <app-list-view
+        [reservations]="reservationsWithServices()"
+        (approve)="onApprove($event)"
+        (cancelReservation)="onCancel($event)"
+      />
+    }
+  }
+</div>

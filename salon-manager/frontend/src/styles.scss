@@ -1,0 +1,109 @@
+@use '@angular/material' as mat;
+
+@include mat.elevation-classes();
+@include mat.app-background();
+
+$salon-primary: mat.m2-define-palette(mat.$m2-pink-palette, 300);
+$salon-accent: mat.m2-define-palette(mat.$m2-purple-palette, 200);
+$salon-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$salon-light-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $salon-primary,
+    accent: $salon-accent,
+    warn: $salon-warn,
+  ),
+  typography: mat.m2-define-typography-config(),
+  density: 0,
+));
+
+$salon-dark-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $salon-primary,
+    accent: $salon-accent,
+    warn: $salon-warn,
+  ),
+  typography: mat.m2-define-typography-config(),
+  density: 0,
+));
+
+@include mat.all-component-themes($salon-light-theme);
+
+.dark-theme {
+  @include mat.all-component-colors($salon-dark-theme);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  // Light theme (default)
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
+  --color-text: #3a2a2e;
+  --color-text-muted: #8a7a7e;
+
+  // Brand colors
+  --color-primary: #b5465a;
+  --color-primary-light: #d4838f;
+  --color-primary-pale: #fdf0f2;
+  --color-primary-dark: #8c2e40;
+  --color-primary-glow: rgba(181, 70, 90, 0.15);
+
+  // Surface variants
+  --color-border: rgba(181, 70, 90, 0.08);
+  --color-divider: rgba(181, 70, 90, 0.15);
+  --color-shadow: rgba(181, 70, 90, 0.06);
+  --color-surface-glass: rgba(255, 255, 255, 0.92);
+
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.dark-theme {
+  --color-background: #1a1a1a;
+  --color-surface: #2d2d2d;
+  --color-text: #e8e0e2;
+  --color-text-muted: #a09598;
+
+  // Brand colors (adjusted for dark)
+  --color-primary: #d4838f;
+  --color-primary-light: #e8a8b2;
+  --color-primary-pale: rgba(212, 131, 143, 0.15);
+  --color-primary-dark: #b5465a;
+  --color-primary-glow: rgba(212, 131, 143, 0.2);
+
+  // Surface variants (dark)
+  --color-border: rgba(212, 131, 143, 0.12);
+  --color-divider: rgba(212, 131, 143, 0.2);
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-surface-glass: rgba(45, 45, 45, 0.92);
+
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+$breakpoint-mobile: 600px;
+$breakpoint-tablet: 960px;
+$breakpoint-desktop: 1280px;

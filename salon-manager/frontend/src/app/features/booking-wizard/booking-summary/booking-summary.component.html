@@ -1,0 +1,65 @@
+<div class="summary-container">
+  <mat-card class="summary-card">
+    <mat-card-header>
+      <mat-card-title>Podsumowanie rezerwacji</mat-card-title>
+      <mat-card-subtitle>Sprawdź szczegóły przed potwierdzeniem</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (slot(); as s) {
+        <div class="info-section highlight">
+          <div class="info-item">
+            <mat-icon color="primary">event</mat-icon>
+            <div class="text">
+              <span class="label">Data i godzina</span>
+              <strong>{{ s.date | date: 'EEEE, d MMMM yyyy' : '' : 'pl' }} o {{ s.time }}</strong>
+            </div>
+          </div>
+          <div class="info-item">
+            <mat-icon color="primary">person</mat-icon>
+            <div class="text">
+              <span class="label">Specjalista</span>
+              <strong>{{ s.employee.firstName }} {{ s.employee.lastName }}</strong>
+            </div>
+          </div>
+        </div>
+      }
+
+      <mat-divider></mat-divider>
+
+      <div class="info-section">
+        <h3>Wybrane usługi ({{ offers().length }})</h3>
+        <ul class="offers-list">
+          @for (offer of offers(); track offer.id) {
+            <li>
+              <span>{{ offer.name }}</span>
+              <span class="spacer"></span>
+              <strong>{{ offer.price | number:'1.2-2' }} PLN</strong>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="total-footer">
+        <div class="total-row">
+          <span>Przewidywany czas trwania:</span>
+          <span>{{ bookingService.totalDuration() }} min</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>Łącznie do zapłaty:</span>
+          <span class="price-value">{{ bookingService.totalPrice() | number:'1.2-2' }} PLN</span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button (click)="back.emit()">Zmień termin</button>
+      <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
+        <mat-icon>check</mat-icon>
+        Potwierdzam rezerwację
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

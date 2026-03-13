@@ -1,0 +1,254 @@
+:host {
+  flex: 1;
+  min-width: 160px;
+  display: block;
+}
+
+.day-column {
+  height: 100%;
+  border-right: 1px solid #e0e0e0;
+}
+
+:host:last-child .day-column {
+  border-right: none;
+}
+
+.day-column.today {
+  background: rgba(233, 30, 99, 0.03);
+}
+
+.day-header {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.day-name {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.day-number {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.today-number {
+  background: #e91e63;
+  color: #fff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-content {
+  position: relative;
+  height: 720px;
+}
+
+.hour-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hour-line {
+  height: 60px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hour-line:last-child {
+  border-bottom: none;
+}
+
+.reservations {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  bottom: 0;
+}
+
+.reservation-block {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, z-index 0s;
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1;
+}
+
+.reservation-block:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+  overflow: visible;
+}
+
+.reservation-block.short-reservation {
+  z-index: 2;
+}
+
+.reservation-block.short-reservation:hover {
+  z-index: 100;
+}
+
+.status-created {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-left: 4px solid #ff9800;
+  color: #e65100;
+}
+
+.status-created:hover {
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+}
+
+.status-approved {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+  color: #1565c0;
+}
+
+.status-approved:hover {
+  background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+}
+
+.status-confirmed {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-left: 4px solid #4caf50;
+  color: #2e7d32;
+}
+
+.status-confirmed:hover {
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+}
+
+.status-cancelled {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border-left: 4px solid #f44336;
+  color: #c62828;
+  opacity: 0.6;
+}
+
+.status-cancelled:hover {
+  background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%);
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.reservation-time {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.reservation-status {
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.reservation-client,
+.reservation-employee,
+.reservation-price {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reservation-client {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.reservation-client mat-icon,
+.reservation-employee mat-icon,
+.reservation-price mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+
+.reservation-employee {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.reservation-price {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.reservation-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.service-chip {
+  font-size: 0.6rem;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.reservation-actions {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.reservation-block:hover .reservation-actions {
+  opacity: 1;
+}
+
+.reservation-actions button {
+  width: 28px !important;
+  height: 28px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.reservation-actions mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 900px) {
+  :host {
+    min-width: 140px;
+  }
+}

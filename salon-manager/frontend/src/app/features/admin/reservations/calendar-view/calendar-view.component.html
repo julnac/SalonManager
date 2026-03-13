@@ -1,0 +1,34 @@
+<div class="calendar-header">
+  <span class="month-year">{{ formatMonthYear() }}</span>
+  <div class="week-navigation">
+    <button mat-icon-button (click)="previousWeek()" matTooltip="Poprzedni tydzień">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button mat-stroked-button (click)="goToToday()">Dziś</button>
+    <button mat-icon-button (click)="nextWeek()" matTooltip="Następny tydzień">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+</div>
+
+<div class="calendar">
+  <div class="time-column">
+    <div class="day-header"></div>
+    <div class="hours">
+      @for (hour of hours; track hour) {
+        <div class="hour-label">{{ hour }}:00</div>
+      }
+    </div>
+  </div>
+
+  @for (day of weekDays(); track $index; let i = $index) {
+    <app-day-column
+      [date]="day"
+      [reservations]="reservationsByDay()[i]"
+      [hours]="hours"
+      [isToday]="isToday(day)"
+      (approve)="onApprove($event)"
+      (cancelReservation)="onCancel($event)"
+    />
+  }
+</div>

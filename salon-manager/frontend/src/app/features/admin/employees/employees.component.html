@@ -1,0 +1,35 @@
+<div class="master-detail">
+  <aside class="master">
+    <div class="master-header">
+      <h2>Pracownicy</h2>
+      <button mat-icon-button color="primary" (click)="addEmployee()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading">
+        <mat-spinner diameter="32"></mat-spinner>
+      </div>
+    } @else if (employeeFormService.allEmployees().length === 0) {
+      <p class="empty">Brak pracowników</p>
+    } @else {
+      <ul class="employee-list">
+        @for (emp of employeeFormService.allEmployees(); track emp.id) {
+          <li>
+            <a [routerLink]="[emp.id]"
+               routerLinkActive="active"
+               class="employee-item">
+              <mat-icon>person</mat-icon>
+              <span>{{ emp.firstName }} {{ emp.lastName }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </aside>
+
+  <section class="detail">
+    <router-outlet></router-outlet>
+  </section>
+</div>

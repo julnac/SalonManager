@@ -1,0 +1,63 @@
+<div class="day-column" [class.today]="isToday()">
+  <div class="day-header">
+    <span class="day-name">{{ formatDayName() }}</span>
+    <span class="day-number" [class.today-number]="isToday()">{{ formatDayNumber() }}</span>
+  </div>
+  <div class="day-content">
+    <div class="hour-lines">
+      @for (hour of hours(); track hour) {
+        <div class="hour-line"></div>
+      }
+    </div>
+    <div class="reservations">
+      @for (reservation of reservations(); track reservation.reservationId) {
+        <div
+          class="reservation-block"
+          [class]="getStatusClass(reservation.status)"
+          [class.short-reservation]="isShortReservation(reservation)"
+          [ngStyle]="getReservationStyle(reservation)"
+        >
+          <div class="reservation-header">
+            <span class="reservation-time">
+              {{ formatTime(reservation.startTime) }} - {{ formatTime(reservation.endTime) }}
+            </span>
+            <span class="reservation-status">{{ getStatusLabel(reservation.status) }}</span>
+          </div>
+
+          <div class="reservation-client">
+            <mat-icon>person</mat-icon>
+            <span>{{ reservation.clientFirstName }} {{ reservation.clientLastName }}</span>
+          </div>
+
+          <div class="reservation-employee">
+            <mat-icon>badge</mat-icon>
+            <span>{{ reservation.employeeFirstName }} {{ reservation.employeeLastName }}</span>
+          </div>
+
+          <div class="reservation-actions">
+            @if (reservation.status === 'CREATED') {
+              <button
+                mat-mini-fab
+                color="primary"
+                (click)="onApprove(reservation, $event)"
+                matTooltip="Zatwierdź rezerwację"
+              >
+                <mat-icon>check</mat-icon>
+              </button>
+            }
+            @if (reservation.status !== 'CANCELLED') {
+              <button
+                mat-mini-fab
+                color="warn"
+                (click)="onCancel(reservation, $event)"
+                matTooltip="Anuluj rezerwację"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

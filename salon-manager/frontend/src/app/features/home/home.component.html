@@ -1,0 +1,72 @@
+<div class="home">
+  <!-- Hero -->
+  <section class="hero">
+    <h1>{{ salonInfo()?.name || 'Rosé Lab' }}</h1>
+    <p class="hero-sub">Odkryj harmonię natury i luksusu w naszym salonie</p>
+    <div class="hero-actions">
+      <a mat-flat-button class="btn-primary" routerLink="/login">Umów wizytę</a>
+      <a mat-stroked-button class="btn-secondary" routerLink="/offer">Zobacz ofertę</a>
+    </div>
+  </section>
+
+  <!-- Services -->
+  @if (featuredServices().length > 0) {
+    <section class="section">
+      <h2>Nasze usługi</h2>
+      <div class="services-grid">
+        @for (service of featuredServices(); track service.id) {
+          <div class="service-card">
+            <h3>{{ service.name }}</h3>
+            <div class="service-meta">
+              <span>{{ service.durationMinutes }} min</span>
+              <span class="dot"></span>
+              <span>{{ service.price | number:'1.0-0' }} PLN</span>
+            </div>
+          </div>
+        }
+      </div>
+      <a mat-stroked-button class="btn-secondary link-more" routerLink="/offer">Pełna oferta</a>
+    </section>
+  }
+
+  <!-- Reviews -->
+  @if (recentReviews().length > 0) {
+    <section class="section">
+      <h2>Opinie</h2>
+      <div class="reviews-grid">
+        @for (review of recentReviews(); track review.id) {
+          <div class="review-card">
+            <p class="review-text">"{{ review.content }}"</p>
+            <span class="review-author">{{ review.userName }} · {{ formatDate(review.createdAt) }}</span>
+          </div>
+        }
+      </div>
+      <a mat-stroked-button class="btn-secondary link-more" routerLink="/reviews">Wszystkie opinie</a>
+    </section>
+  }
+
+  <!-- Contact -->
+  @if (salonInfo()) {
+    <section class="section contact">
+      <h2>Kontakt</h2>
+      <div class="contact-grid">
+        <div class="contact-item">
+          <mat-icon>place</mat-icon>
+          <span>{{ salonInfo().address }}</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>phone</mat-icon>
+          <span>{{ salonInfo().phone }}</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>email</mat-icon>
+          <span>{{ salonInfo().email }}</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>schedule</mat-icon>
+          <span>{{ formatTime(salonInfo().openingTime) }} – {{ formatTime(salonInfo().closingTime) }}</span>
+        </div>
+      </div>
+    </section>
+  }
+</div>

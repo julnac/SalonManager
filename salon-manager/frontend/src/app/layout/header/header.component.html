@@ -1,0 +1,104 @@
+<header class="header">
+  <div class="header-content">
+    <a routerLink="/" class="logo">
+      <mat-icon>spa</mat-icon>
+      <span>Rosé Lab</span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="nav-menu desktop-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">Strona główna</a>
+      <a routerLink="/about" routerLinkActive="active" class="nav-link">O nas</a>
+      @if (authService.isAuthenticated() && !isAdmin()) {
+        <a routerLink="/booking" routerLinkActive="active" class="nav-link">Usługi</a>
+      }@else {
+        <a routerLink="/offer" routerLinkActive="active" class="nav-link">Usługi</a>
+      }
+      <a routerLink="/reviews" routerLinkActive="active" class="nav-link">Opinie</a>
+
+      @if (authService.isAuthenticated() && !isAdmin()) {
+        <span class="nav-divider"></span>
+        <a routerLink="/user/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
+      }
+
+      @if (authService.isAuthenticated() && isAdmin()) {
+        <span class="nav-divider"></span>
+        <a routerLink="/admin/reservations" routerLinkActive="active" class="nav-link">Rezerwacje</a>
+        <a routerLink="/admin/employees" routerLinkActive="active" class="nav-link">Pracownicy</a>
+        <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">Użytkownicy</a>
+      }
+    </nav>
+
+    <span class="spacer"></span>
+
+    <div class="header-actions">
+      
+      <button mat-icon-button (click)="toggleTheme()" [matTooltip]="themeService.isDarkMode() ? 'Tryb jasny' : 'Tryb ciemny'">
+        <mat-icon>{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      @if (userNick()) {
+        <span class="user-greeting">{{ userNick() }}</span>
+        <button mat-button class="logout-btn" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span class="logout-label">Wyloguj</span>
+        </button>
+      } @else {
+        <a mat-flat-button routerLink="/login" class="login-btn">Zaloguj się</a>
+      }
+
+      <button mat-icon-button class="hamburger" (click)="toggleMobileMenu()">
+        <mat-icon>{{ mobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- Mobile Nav -->
+  @if (mobileMenuOpen()) {
+    <nav class="mobile-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link" (click)="closeMobileMenu()">
+        <mat-icon>home</mat-icon> Strona główna
+      </a>
+      <a routerLink="/about" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+        <mat-icon>info</mat-icon> O nas
+      </a>
+      <a routerLink="/offer" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+        <mat-icon>menu_book</mat-icon> Usługi
+      </a>
+      <a routerLink="/reviews" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+        <mat-icon>rate_review</mat-icon> Opinie
+      </a>
+
+      @if (authService.isAuthenticated() && !isAdmin()) {
+        <div class="mobile-divider"></div>
+        <a routerLink="/user/dashboard" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+          <mat-icon>dashboard</mat-icon> Dashboard
+        </a>
+      }
+
+      @if (isAdmin()) {
+        <div class="mobile-divider"></div>
+        <a routerLink="/admin/reservations" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+          <mat-icon>calendar_month</mat-icon> Rezerwacje
+        </a>
+        <a routerLink="/admin/employees" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+          <mat-icon>badge</mat-icon> Pracownicy
+        </a>
+        <a routerLink="/admin/users" routerLinkActive="active" class="mobile-link" (click)="closeMobileMenu()">
+          <mat-icon>group</mat-icon> Użytkownicy
+        </a>
+      }
+
+      <div class="mobile-divider"></div>
+      @if (userNick()) {
+        <button class="mobile-link mobile-logout" (click)="logout()">
+          <mat-icon>logout</mat-icon> Wyloguj ({{ userNick() }})
+        </button>
+      } @else {
+        <a routerLink="/login" class="mobile-link mobile-login" (click)="closeMobileMenu()">
+          <mat-icon>login</mat-icon> Zaloguj się
+        </a>
+      }
+    </nav>
+  }
+</header>

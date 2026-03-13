@@ -1,0 +1,64 @@
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.month-year {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar {
+  display: flex;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.time-column {
+  width: 60px;
+  flex-shrink: 0;
+  background: #fafafa;
+  border-right: 1px solid #e0e0e0;
+}
+
+.time-column .day-header {
+  height: 60px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.hours {
+  position: relative;
+}
+
+.hour-label {
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #666;
+  padding-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .calendar {
+    overflow-x: auto;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}

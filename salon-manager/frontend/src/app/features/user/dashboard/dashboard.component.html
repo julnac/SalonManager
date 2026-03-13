@@ -1,0 +1,156 @@
+<div class="dashboard">
+  <h1>Panel klienta</h1>
+
+  <!-- Sekcja profilu -->
+  @if (authService.currentUser()) {
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <div mat-card-avatar class="profile-avatar">
+          <mat-icon>person</mat-icon>
+        </div>
+        <mat-card-title>{{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}</mat-card-title>
+        <mat-card-subtitle>{{ authService.currentUser()?.email }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="profile-stats">
+          <div class="stat">
+            <span class="stat-value">{{ dashboardService.myUpcomingReservations().length }}</span>
+            <span class="stat-label">Nadchodzące wizyty</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ dashboardService.myPastReservations().length }}</span>
+            <span class="stat-label">Historia wizyt</span>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-raised-button color="primary" routerLink="/offer">
+          <mat-icon>add</mat-icon>
+          Umów nową wizytę
+        </a>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Sekcja rezerwacji -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Ładowanie rezerwacji...</p>
+    </div>
+  } @else {
+    <mat-tab-group>
+      <!-- Nadchodzące rezerwacje -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>event</mat-icon>
+          Nadchodzące ({{ dashboardService.myUpcomingReservations().length }})
+        </ng-template>
+
+        <div class="reservations-list">
+          @for (reservation of dashboardService.myUpcomingReservations(); track reservation.reservationId) {
+            <mat-card class="reservation-card">
+              <mat-card-header>
+                <mat-card-title>
+                  {{ reservationUtils.formatDateDescriptional(reservation.startTime) }}
+                </mat-card-title>
+                <mat-card-subtitle>
+                  {{ reservationUtils.formatTime(reservation.startTime) }} - {{ reservationUtils.formatTime(reservation.endTime) }}
+                </mat-card-subtitle>
+                <mat-chip-set class="status-chip">
+                  <mat-chip [color]="reservationUtils.getStatusColor(reservation.status)" highlighted>
+                    {{ reservationUtils.getStatusLabels(reservation.status) }}
+                  </mat-chip>
+                </mat-chip-set>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="reservation-details">
+                  <div class="detail-row">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ reservation.employeeFirstName }} {{ reservation.employeeLastName }}</span>
+                  </div>
+
+                  <div class="detail-row price">
+                    <mat-icon>payments</mat-icon>
+                    <span>{{ reservation.totalPrice | number:'1.2-2' }} PLN</span>
+                  </div>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                @if (canConfirm(reservation)) {
+                  <button mat-button color="primary" (click)="onConfirm(reservation)">
+                    <mat-icon>check</mat-icon>
+                    Potwierdź
+                  </button>
+                }
+                @if (canCancel(reservation)) {
+                  <button mat-button color="warn" (click)="onCancel(reservation)">
+                    <mat-icon>close</mat-icon>
+                    Anuluj
+                  </button>
+                }
+              </mat-card-actions>
+            </mat-card>
+          } @empty {
+            <div class="empty-state">
+              <mat-icon>event_busy</mat-icon>
+              <p>Brak nadchodzących rezerwacji</p>
+              <a mat-raised-button color="primary" routerLink="/offer">
+                Umów wizytę
+              </a>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Historia rezerwacji -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>history</mat-icon>
+          Historia ({{ dashboardService.myPastReservations().length }})
+        </ng-template>
+
+        <div class="reservations-list">
+          @for (reservation of dashboardService.myPastReservations(); track reservation.reservationId) {
+            <mat-card class="reservation-card past">
+              <mat-card-header>
+                <mat-card-title>
+                  {{ reservationUtils.formatDateDescriptional(reservation.startTime) }}
+                </mat-card-title>
+                <mat-card-subtitle>
+                  {{ reservationUtils.formatTime(reservation.startTime) }} - {{ reservationUtils.formatTime(reservation.endTime) }}
+                </mat-card-subtitle>
+                <mat-chip-set class="status-chip">
+                  <mat-chip [color]="reservationUtils.getStatusColor(reservation.status)" highlighted>
+                    {{ reservationUtils.getStatusLabels(reservation.status) }}
+                  </mat-chip>
+                </mat-chip-set>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="reservation-details">
+                  <div class="detail-row">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ reservation.employeeFirstName }} {{ reservation.employeeLastName }}</span>
+                  </div>
+
+                  <div class="detail-row price">
+                    <mat-icon>payments</mat-icon>
+                    <span>{{ reservation.totalPrice | number:'1.2-2' }} PLN</span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          } @empty {
+            <div class="empty-state">
+              <mat-icon>history</mat-icon>
+              <p>Brak historii wizyt</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

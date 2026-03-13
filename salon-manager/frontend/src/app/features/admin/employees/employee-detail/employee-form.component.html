@@ -1,0 +1,118 @@
+@if (formService.isLoading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Ładowanie danych...</p>
+  </div>
+} @else {
+  <div class="detail-header">
+    <h2>{{ formService.isNewMode() ? 'Nowy pracownik' : 'Edycja pracownika' }}</h2>
+    @if (!formService.isNewMode()) {
+      <button mat-button color="warn" (click)="deleteEmployee()">
+        <mat-icon>delete</mat-icon>
+        Usuń
+      </button>
+    }
+  </div>
+
+  <form [formGroup]="form" class="employee-form" (ngSubmit)="save()">
+    <div class="form-fields">
+      <mat-form-field appearance="outline">
+        <mat-label>Imię</mat-label>
+        <input matInput formControlName="firstName" />
+        @if (form.controls.firstName.hasError('required')) {
+          <mat-error>Imię jest wymagane</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nazwisko</mat-label>
+        <input matInput formControlName="lastName" />
+        @if (form.controls.lastName.hasError('required')) {
+          <mat-error>Nazwisko jest wymagane</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+        @if (form.controls.email.hasError('required')) {
+          <mat-error>Email jest wymagany</mat-error>
+        } @else if (form.controls.email.hasError('email')) {
+          <mat-error>Nieprawidłowy format email</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="specializations-section">
+      <div class="section-header">
+        <h3>Specjalizacje</h3>
+        <button mat-icon-button color="primary" type="button" (click)="addSpecializationGroup()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      @for (spec of specializations.controls; track $index) {
+        <div class="specialization-row" [formGroup]="spec">
+          <mat-form-field appearance="outline" class="service-select">
+            <mat-label>Usługa</mat-label>
+            <mat-select formControlName="serviceId">
+              @for (service of getAvailableServices($index); track service.id) {
+                <mat-option [value]="service.id">{{ service.name }}</mat-option>
+              }
+              @if (spec.value.serviceId) {
+                <mat-option [value]="spec.value.serviceId">{{ getServiceName(spec.value.serviceId) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="experience-input">
+            <mat-label>Lata doświadczenia</mat-label>
+            <input matInput type="number" formControlName="experienceYears" min="0" />
+          </mat-form-field>
+
+          <button mat-icon-button color="warn" type="button" (click)="removeSpecializationGroup($index)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+
+      @if (specializations.length === 0) {
+        <p class="no-specs">Brak specjalizacji. Kliknij + aby dodać.</p>
+      }
+    </div>
+
+    <div class="schedule-section">
+      <h3>Harmonogram pracy</h3>
+
+      @for (day of schedule.controls; track $index) {
+        <div class="schedule-row" [formGroup]="day">
+          <mat-checkbox formControlName="isWorkingDay" class="day-checkbox">
+            {{ dayLabels[day.controls.dayOfWeek.value] }}
+          </mat-checkbox>
+
+          @if (day.controls.isWorkingDay.value) {
+            <mat-form-field appearance="outline" class="time-input">
+              <mat-label>Od</mat-label>
+              <input matInput type="time" formControlName="startTime" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="time-input">
+              <mat-label>Do</mat-label>
+              <input matInput type="time" formControlName="endTime" />
+            </mat-form-field>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || formService.isSaving()">
+        @if (formService.isSaving()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          {{ formService.isNewMode() ? 'Dodaj' : 'Zapisz' }}
+        }
+      </button>
+    </div>
+  </form>
+}

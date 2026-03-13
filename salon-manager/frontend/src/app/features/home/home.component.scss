@@ -1,0 +1,194 @@
+:host {
+  --rose: #b5465a;
+  --rose-light: #d4838f;
+  --rose-pale: #fdf0f2;
+  --rose-dark: #8c2e40;
+  --text: #3a2a2e;
+  --text-muted: #8a7a7e;
+  --white: #ffffff;
+  --border: rgba(181, 70, 90, 0.1);
+}
+
+.home {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+/* ── Hero ── */
+.hero {
+  text-align: center;
+  padding: 5rem 0 4rem;
+}
+
+.hero h1 {
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: var(--rose);
+  margin-bottom: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--rose) !important;
+  color: var(--white) !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 0 24px !important;
+}
+
+.btn-primary:hover {
+  background: var(--rose-dark) !important;
+}
+
+.btn-secondary {
+  border-color: var(--rose) !important;
+  color: var(--rose) !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 0 24px !important;
+}
+
+.btn-secondary:hover {
+  background: var(--rose-pale) !important;
+}
+
+/* ── Sections ── */
+.section {
+  margin-bottom: 3rem;
+}
+
+.section h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.link-more {
+  margin-top: 1rem;
+}
+
+/* ── Services ── */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.service-card {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.service-card:hover {
+  border-color: var(--rose-light);
+}
+
+.service-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.service-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rose-light);
+}
+
+/* ── Reviews ── */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.review-card {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.review-text {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 0.75rem;
+}
+
+.review-author {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Contact ── */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.contact-item mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--rose-light);
+  flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .hero {
+    padding: 3rem 0 2.5rem;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .services-grid,
+  .reviews-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}

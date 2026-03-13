@@ -1,0 +1,93 @@
+@if (paginatedData().length === 0) {
+  <div class="empty">
+    <mat-icon>event_busy</mat-icon>
+    <p>Brak rezerwacji spełniających kryteria</p>
+  </div>
+} @else {
+  <div class="table-container">
+    <table class="reservations-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Klient</th>
+          <th>Pracownik</th>
+          <th>Termin</th>
+          <th>Cena</th>
+          <th>Usługi</th>
+          <th>Status</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (reservation of paginatedData(); track reservation.reservationId) {
+          <tr [class]="getStatusClass(reservation.status)">
+            <td class="cell-id">#{{ reservation.reservationId }}</td>
+            <td class="cell-client">{{ reservation.clientFirstName }} {{ reservation.clientLastName }}</td>
+            <td class="cell-employee">{{ reservation.employeeFirstName }} {{ reservation.employeeLastName }}</td>
+            <td class="cell-date">
+              <div class="date-info">
+                <span class="date">{{ formatDate(reservation.startTime) }}</span>
+                <span class="time">{{ formatTime(reservation.startTime) }} – {{ formatTime(reservation.endTime) }}</span>
+              </div>
+            </td>
+            <td class="cell-price">{{ reservation.totalPrice }} zł</td>
+            <td class="cell-services">
+              @if (reservation.serviceDetails && reservation.serviceDetails.length > 0) {
+                <div class="service-chips">
+                  @for (service of reservation.serviceDetails; track service.id) {
+                    <span class="service-chip" [matTooltip]="service.durationMinutes + ' min, ' + service.price + ' zł'">
+                      {{ service.name }}
+                    </span>
+                  }
+                </div>
+              }
+            </td>
+            <td class="cell-status">
+              <span class="status-badge" [ngClass]="getStatusClass(reservation.status)">
+                {{ getStatusLabel(reservation.status) }}
+              </span>
+            </td>
+            <td class="cell-actions">
+              @if (reservation.status === 'CREATED') {
+                <button mat-icon-button color="primary" (click)="onApprove(reservation)" matTooltip="Zatwierdź">
+                  <mat-icon>check</mat-icon>
+                </button>
+              }
+              @if (reservation.status !== 'CANCELLED') {
+                <button mat-icon-button color="warn" (click)="onCancel(reservation)" matTooltip="Anuluj">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <div class="page-size">
+      <span>Elementów na stronie:</span>
+      <mat-form-field appearance="outline" class="page-size-select">
+        <mat-select [value]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
+          @for (size of pageSizeOptions; track size) {
+            <mat-option [value]="size">{{ size }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="page-info">
+      <span>{{ reservations().length }} wyników, strona {{ currentPage() }} z {{ totalPages() }}</span>
+    </div>
+
+    <div class="page-controls">
+      <button mat-icon-button [disabled]="currentPage() <= 1" (click)="previousPage()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button mat-icon-button [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+}

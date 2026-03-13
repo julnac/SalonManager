@@ -1,0 +1,106 @@
+<div class="offer-list">
+  <div class="header">
+    <h1>Usługi</h1>
+    @if (isAdmin()) {
+      <button mat-raised-button color="primary" (click)="openAddDialog()">
+        <mat-icon>add</mat-icon>
+        Dodaj usługę
+      </button>
+    }
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Szukaj usługi</mat-label>
+      <input matInput [ngModel]="searchText()" (ngModelChange)="searchText.set($event)" placeholder="Wpisz nazwę usługi">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Sortuj według</mat-label>
+      <mat-select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+        <mat-option value="name-asc">Nazwa (A-Z)</mat-option>
+        <mat-option value="name-desc">Nazwa (Z-A)</mat-option>
+        <mat-option value="price-asc">Cena (rosnąco)</mat-option>
+        <mat-option value="price-desc">Cena (malejąco)</mat-option>
+        <mat-option value="duration-asc">Czas trwania (rosnąco)</mat-option>
+        <mat-option value="duration-desc">Czas trwania (malejąco)</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading()) {
+    <p class="loading">Ładowanie usług...</p>
+  } @else {
+    <div class="services-grid">
+      @for (service of filteredServices(); track service.id) {
+        <mat-card
+          [class.selected]="isLoggedIn() && !isAdmin() && isSelected(service)"
+          [class.selectable]="isLoggedIn() && !isAdmin()"
+          (click)="isLoggedIn() && !isAdmin() && toggleService(service)"
+        >
+          @if (isLoggedIn() && !isAdmin()) {
+            <mat-checkbox
+              class="service-checkbox"
+              [checked]="isSelected(service)"
+              (click)="$event.stopPropagation()"
+              (change)="toggleService(service)"
+            ></mat-checkbox>
+          }
+
+          <mat-card-header>
+            <mat-card-title>{{ service.name }}</mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            <p class="duration">
+              <mat-icon>schedule</mat-icon>
+              {{ service.durationMinutes }} min
+            </p>
+            <p class="price">
+              <mat-icon>payments</mat-icon>
+              {{ service.price | number:'1.2-2' }} PLN
+            </p>
+          </mat-card-content>
+
+          @if (isAdmin()) {
+            <mat-card-actions>
+              <button mat-button color="primary" (click)="openEditDialog(service, $event)">
+                <mat-icon>edit</mat-icon>
+                Edytuj
+              </button>
+              <button mat-button color="warn" (click)="deleteService(service, $event)">
+                <mat-icon>delete</mat-icon>
+                Usuń
+              </button>
+            </mat-card-actions>
+          }
+        </mat-card>
+      } @empty {
+        <p class="no-results">Nie znaleziono usług spełniających kryteria wyszukiwania.</p>
+      }
+    </div>
+  }
+
+  @if (isLoggedIn() && !isAdmin() && store.selectedOffers().length > 0) {
+    <div class="booking-bar">
+      <div class="booking-summary">
+        <span class="summary-item">
+          <strong>{{ store.selectedOffers().length }}</strong>
+          {{ store.selectedOffers().length === 1 ? 'usługa' : 'usługi' }}
+        </span>
+        <span class="summary-item">
+          <mat-icon>schedule</mat-icon>
+          {{ store.totalDuration() }} min
+        </span>
+        <span class="summary-item">
+          <mat-icon>payments</mat-icon>
+          {{ store.totalPrice() | number:'1.2-2' }} PLN
+        </span>
+      </div>
+      <button mat-raised-button color="primary" (click)="goToBooking()">
+        Umów wizytę
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  }
+</div>

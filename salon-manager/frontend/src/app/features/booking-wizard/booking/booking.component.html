@@ -1,0 +1,93 @@
+<div class="booking-page">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Ładowanie dostępności...</p>
+    </div>
+  } @else {
+    <div class="booking-content">
+      <div class="calendar-section">
+        <div class="section-header">
+          <h2>Wybierz termin</h2>
+          <mat-form-field appearance="outline" class="employee-filter">
+            <mat-label>Pracownik</mat-label>
+            <mat-select [ngModel]="employeeFilter()" (ngModelChange)="employeeFilter.set($event)">
+              <mat-option [value]="null">Dowolny</mat-option>
+              @for (employee of allEmployees(); track employee.employeeId) {
+                <mat-option [value]="employee.employeeId">
+                  {{ employee.firstName }} {{ employee.lastName }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Dni tygodnia -->
+        <div class="days-list">
+          @for (day of store.days(); track day.dateStr) {
+            <button
+              class="day-button"
+              [class.selected]="store.selectedDay()?.dateStr === day.dateStr"
+              [class.no-slots]="!day.isLoading && !hasAvailableSlots(day)"
+              [disabled]="day.isLoading || !hasAvailableSlots(day)"
+              (click)="selectDay(day)"
+            >
+              @if (day.isLoading) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                <span class="day-name">{{ day.dayName }}</span>
+                <span class="day-number">{{ day.dayNumber }}</span>
+                @if (!hasAvailableSlots(day)) {
+                  <span class="no-availability">brak</span>
+                }
+              }
+            </button>
+          }
+        </div>
+
+        <!-- Sloty godzinowe -->
+        @if (store.selectedDay()) {
+          <div class="slots-section">
+            <h3>Dostępne godziny</h3>
+
+            @if (filteredEmployees().length > 0) {
+              <div class="employees-slots">
+                @for (employee of filteredEmployees(); track employee.employeeId) {
+                  <div class="employee-row">
+                    <span class="employee-name">{{ employee.firstName }} {{ employee.lastName }}</span>
+                    <div class="slots-grid">
+                      @for (slot of employee.availableSlots; track slot) {
+                        <button
+                          class="slot-chip"
+                          [class.selected]="store.selectedSlot()?.time === slot.substring(0,5) && store.selectedSlot()?.employee?.employeeId === employee.employeeId"
+                          (click)="selectSlot(employee, slot)"
+                        >
+                          {{ formatSlotTime(slot) }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="no-slots-message">Brak dostępnych terminów w tym dniu</p>
+            }
+          </div>
+        }
+
+        <!-- Przyciski nawigacji -->
+        <div class="actions">
+          <button mat-button (click)="back.emit()">Wróć</button>
+          <button
+            mat-flat-button
+            color="primary"
+            [disabled]="!store.selectedSlot()"
+            (click)="proceed()"
+          >
+            Dalej
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

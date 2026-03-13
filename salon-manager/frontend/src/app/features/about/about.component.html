@@ -1,0 +1,50 @@
+<div class="about">
+  <h1>O nas</h1>
+
+  @if (isLoading()) {
+    <mat-progress-spinner></mat-progress-spinner>
+  } @else {
+    @if (salonService.salon(); as salon) {
+    <section class="section">
+      <h2>{{ salon.name }}</h2>
+      <p class="intro">Profesjonalny salon kosmetyczno-fryzjerski oferujący szeroki zakres usług dla kobiet i mężczyzn.</p>
+
+      <div class="contact-grid">
+        <div class="contact-item">
+          <mat-icon>place</mat-icon>
+          <span>{{ salon.address }}</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>phone</mat-icon>
+          <span>{{ salon.phone }}</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>email</mat-icon>
+          <span>{{ salon.email }}</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>schedule</mat-icon>
+          <span>{{ formatTime(salon.openingTime) }} – {{ formatTime(salon.closingTime) }}</span>
+        </div>
+      </div>
+    </section>
+  }
+  }
+
+  <section class="section">
+    <h2>Nasz zespół</h2>
+    <div class="team-grid">
+      @for (employee of employeeService.employees(); track employee.id) {
+        <div class="team-card">
+          <div class="avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <span class="name">{{ employee.firstName }} {{ employee.lastName }}</span>
+          <span class="email">{{ employee.email }}</span>
+        </div>
+      } @empty {
+        <p class="empty">Ładowanie informacji o zespole...</p>
+      }
+    </div>
+  </section>
+</div>

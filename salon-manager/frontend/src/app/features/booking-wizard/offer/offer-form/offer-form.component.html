@@ -1,0 +1,42 @@
+    <h2 mat-dialog-title>{{ data.mode === 'add' ? 'Dodaj usługę' : 'Edytuj usługę' }}</h2>
+
+    <mat-dialog-content>
+      <form [formGroup]="form" class="service-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Nazwa</mat-label>
+          <input matInput formControlName="name" placeholder="Nazwa usługi">
+          @if (form.controls.name.hasError('required')) {
+            <mat-error>Nazwa jest wymagana</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cena (PLN)</mat-label>
+          <input matInput type="number" formControlName="price" placeholder="0.00">
+          @if (form.controls.price.hasError('required')) {
+            <mat-error>Cena jest wymagana</mat-error>
+          }
+          @if (form.controls.price.hasError('min')) {
+            <mat-error>Cena musi być większa od 0</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Czas trwania (min)</mat-label>
+          <input matInput type="number" formControlName="durationMinutes" placeholder="30">
+          @if (form.controls.durationMinutes.hasError('required')) {
+            <mat-error>Czas trwania jest wymagany</mat-error>
+          }
+          @if (form.controls.durationMinutes.hasError('min')) {
+            <mat-error>Czas musi być większy od 0</mat-error>
+          }
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Anuluj</button>
+      <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="submit()">
+        {{ data.mode === 'add' ? 'Dodaj' : 'Zapisz' }}
+      </button>
+    </mat-dialog-actions>

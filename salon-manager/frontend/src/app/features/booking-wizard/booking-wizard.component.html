@@ -1,0 +1,31 @@
+<!-- <div class="wizard-container"> -->
+  <mat-stepper #stepper [linear]="true">
+    <!-- Krok 1: Wybór usług -->
+    <mat-step [completed]="bookingService.selectedOffers().length > 0">
+      <ng-template matStepLabel>Usługi</ng-template>
+      <app-offer (next)="stepper.next()"></app-offer>
+    </mat-step>
+
+    <!-- Krok 2: Wybór terminu (lazy) -->
+    <mat-step [completed]="!!bookingService.selectedSlot()">
+      <ng-template matStepLabel>Termin</ng-template>
+      <ng-template matStepContent>
+        <app-booking
+          (back)="stepper.previous()"
+          (next)="stepper.next()">
+        </app-booking>
+      </ng-template>
+    </mat-step>
+
+    <!-- Krok 3: Podsumowanie (lazy) -->
+    <mat-step>
+      <ng-template matStepLabel>Potwierdzenie</ng-template>
+      <ng-template matStepContent>
+        <app-booking-summary
+          (back)="stepper.previous()"
+          (confirm)="finish()">
+        </app-booking-summary>
+      </ng-template>
+    </mat-step>
+  </mat-stepper>
+<!-- </div> -->

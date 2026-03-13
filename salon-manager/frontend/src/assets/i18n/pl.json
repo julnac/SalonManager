@@ -1,0 +1,52 @@
+{
+  "common": {
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "delete": "Usuń",
+    "edit": "Edytuj",
+    "add": "Dodaj",
+    "back": "Wróć",
+    "confirm": "Potwierdź",
+    "close": "Zamknij",
+    "loading": "Ładowanie...",
+    "search": "Szukaj",
+    "filter": "Filtruj",
+    "sort": "Sortuj",
+    "yes": "Tak",
+    "no": "Nie"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "about": "O nas",
+    "priceList": "Cennik",
+    "reviews": "Opinie",
+    "login": "Logowanie",
+    "register": "Rejestracja",
+    "logout": "Wyloguj",
+    "dashboard": "Panel użytkownika",
+    "admin": "Panel admina"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Hasło",
+    "rememberMe": "Zapamiętaj mnie",
+    "loginButton": "Zaloguj się",
+    "registerButton": "Zarejestruj się",
+    "forgotPassword": "Zapomniałeś hasła?",
+    "noAccount": "Nie masz konta?",
+    "hasAccount": "Masz już konto?"
+  },
+  "notifications": {
+    "success": "Operacja zakończona sukcesem",
+    "error": "Wystąpił błąd",
+    "warning": "Ostrzeżenie",
+    "info": "Informacja"
+  },
+  "validation": {
+    "required": "To pole jest wymagane",
+    "email": "Nieprawidłowy adres email",
+    "minLength": "Minimalna długość: {{length}} znaków",
+    "maxLength": "Maksymalna długość: {{length}} znaków",
+    "pattern": "Nieprawidłowy format"
+  }
+}
