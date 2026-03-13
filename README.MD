@@ -5,29 +5,30 @@ A comprehensive SaaS-style web application designed for service-based businesses
 ## Key Features
 
 ### Intelligent Booking Algorithm
-* **User-Driven Selection:** Clients select multiple services for a single visit.
-* **Duration Calculation:** The algorithm aggregates the total duration and converts it into 15-minute time slots.
-* **Specialization Filtering:** Filters staff members based on the required skill set for the entire service package.
-* **Time-Slot Optimization:** Scans employee schedules for sufficiently large availability windows.
-* **Real-Time Availability:** Displays valid time slots for the user to choose from.
+* Clients select multiple services for a single visit.
+* The algorithm aggregates the total duration and converts it into 15-minute time slots.
+* Filters staff members based on the required skill set for the entire service package.
+* Scans employee schedules for sufficiently large availability windows.
+* Displays valid time slots for the user to choose from.
 
 ### Analytics Module
-* **Financial Insights:** Calculation of the average transaction value per client.
-* **Service Efficiency:** Analysis of average service durations.
-* **High Performance:** Utilizes Group By and RowMapper for maximum efficiency when processing large datasets via direct SQL.
+* Calculation of the average transaction value per client.
+* Analysis of average service durations.
+
+![Analytics](./images/analityka.png)
 
 ### Client Dashboard
-* **Appointment History:** Overview of completed and canceled bookings with advanced filtering and sorting.
-* **Account Management:** Profile data editing using Reactive Forms with robust field validation.
+* **Booking System:** Clients can book appointments through 3 stage wizard: select services, select employee and date, confirm booking.
+* **Appointment History:** Overview of completed and canceled bookings.
 * **Flexible Modifications:** Ability to edit or cancel bookings before salon confirmation.
 * **Reviews System:** Leave feedback for the salon, add photos to reviews, and manage your own posts.
+
+![User dashboard](./images/user.gif)
 
 ### Admin Panel
 * **Staff Management:** Full CRUD module for employees with detailed configuration forms.
 * **User Control:** Monitor account statuses (Active/Suspended) and track user-specific statistics.
-* **Booking Overview:** A centralized system for managing all salon appointments.
-
-![User dashboard](./images/user.gif)
+* **Booking Overview:** A centralized system for managing all salon appointments with filters, sorting and pagination.
 
 ![Admin dashboard](./images/admin.gif)
 
@@ -84,6 +85,7 @@ Navigate to the salon-manager root directory (where docker-compose.yml is locate
 
 ```bash
 docker compose up -d --build
+```
 
 **Access points:**
 * Frontend: http://localhost
