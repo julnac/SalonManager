@@ -34,14 +34,6 @@ A comprehensive SaaS-style web application designed for service-based businesses
 
 ---
 
-## Project Architecture
-
-* **frontend/** - Client-side application (Angular), served in production via Nginx on port 80.
-* **backend/** - RESTful API server (Spring Boot, Java 21) listening on port 8080.
-* **postgres** - Relational database listening on port 5432.
-
----
-
 ## Technical Stack
 
 ### Backend: Spring Boot 3 (Java 21)
