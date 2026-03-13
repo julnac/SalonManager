@@ -22,7 +22,7 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./salon-manager
       dockerfile: Dockerfile
     container_name: salon-manager-backend
     environment:
@@ -44,6 +44,20 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: salon-manager-frontend
+    ports:
+      - "80:80"
+    networks:
+      - salon-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
